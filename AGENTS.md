@@ -1,17 +1,10 @@
-# Development conventions
+# 开发约定
 
-- UI, interaction, general features, CPU inference and regression tests may run
-  on Android Studio virtual devices or connected physical devices. Do not change
-  physical devices' display settings as part of routine testing.
-- Every device operation must select an explicit serial (`adb -s <serial>`).
-  Inspect `adb devices -l` first. AVD serials are not stable identifiers.
-- CPU results do not validate NPU execution. NPU tests skip when the packaged
-  runtime is absent; the dedicated audit also requires native delegation evidence.
-- Keep raw test reports, device identifiers, local paths, signing keys and
-  screenshots of other applications out of Git. Use the ignored `.local/` directory.
-- Preserve `third_party/katago/` unchanged. Its hash manifest identifies the exact
-  upstream source; Android adapters belong in `app/src/main/cpp/`.
-- User-facing text belongs in Android resources, with English and Chinese values.
-  Keep SGF data and internal identifiers independent of the UI language.
+- 界面、交互、一般功能、CPU 推理和回归测试可在 Android Studio 虚拟设备或已连接的实体设备上运行。常规测试不得更改实体设备的显示设置。
+- 每次设备操作都必须显式指定设备序列号（`adb -s <serial>`）。操作前先查看 `adb devices -l`。AVD 序列号不是稳定标识，不能假定其保持不变。
+- CPU 测试结果不能验证 NPU 执行情况。未包含所需运行时时，NPU 测试会跳过；专门的 NPU 审计还要求提供原生层委托执行的证据。
+- 原始测试报告、设备标识、本地路径、签名密钥和其他应用的截图不得提交到 Git，应保存在已被 Git 忽略的 `.local/` 目录中。
+- 保持 `third_party/katago/` 不变。其哈希清单用于标识确切的上游源码版本；Android 适配代码应放在 `app/src/main/cpp/` 中。
+- 面向用户的文本应放在 Android 资源中，并提供英文和中文版本。SGF 数据和内部标识符应与界面语言无关。
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for build and verification commands.
+构建和验证命令见 [CONTRIBUTING.md](CONTRIBUTING.md)。
