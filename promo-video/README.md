@@ -2,45 +2,6 @@
 
 独立于 Android 构建的 **Remotion + MiMo TTS** 工程。
 
-| 视频（MP4，Git LFS） | 时长 | 画幅 | Composition | 字幕 |
-| --- | ---: | --- | --- | --- |
-| [宣传片正式版](videos/katadroid-promo-zh-54s.mp4) | 54 秒，含片尾 | 1920×1080 · 30 fps | `KataDroid-Promo-ZH` | [SRT](videos/promo.zh-CN.srt) |
-| [一分钟复盘教程](videos/katadroid-tutorial-zh-vertical-58s.mp4) | 58 秒 | 1080×1920 · 30 fps | `KataDroid-Tutorial-ZH` | [SRT](videos/tutorial.zh-CN.srt) |
-
-正式版采用最新 APK 的中文 AVD 操作录屏，包含离线分析、候选预览、胜率图跳转、变化树、AI 对弈、SGF 菜单和下载二维码。中文旁白、字幕、轻量氛围音与落子音效均已接入。
-
-## 视频封面
-
-宣传片正式版和复盘教程各提供两种独立排版的 PNG 封面，画面取自对应成片中的 App 实录。
-
-| 视频 | 16:9 · 1920×1080 | 4:3 · 1440×1080 |
-| --- | --- | --- |
-| 宣传片正式版 | [封面](videos/katadroid-promo-zh-16x9.png) | [封面](videos/katadroid-promo-zh-4x3.png) |
-| 一分钟复盘教程 | [封面](videos/katadroid-tutorial-zh-16x9.png) | [封面](videos/katadroid-tutorial-zh-4x3.png) |
-
-重新生成需要 Python 3、Pillow、FFmpeg 和 Noto Sans CJK 可变字体：
-
-```bash
-python3 scripts/covers.py
-# 自定义字体位置：
-python3 scripts/covers.py --font /path/to/NotoSansCJK-VF.ttc
-```
-
-发布封面位于 `videos/`，使用 Git LFS 存储；中间帧保存在忽略目录 `.local/covers/`。
-
-## 获取成片
-
-发布成片位于 [`videos/`](videos/)。MP4 和 PNG 封面使用 Git LFS；字幕、[教程章节](videos/tutorial.chapters.txt)和 [SHA-256 校验清单](videos/SHA256SUMS)使用普通 Git 文本存储。
-
-安装 Git LFS 后，在仓库根目录执行：
-
-```bash
-git lfs install
-git lfs pull --include="promo-video/videos/*.mp4,promo-video/videos/*.png"
-(cd promo-video/videos && sha256sum -c SHA256SUMS)
-```
-
-更新发布成片时，先完成下文的渲染与校验，再从 `.local/output/` 复制对应的 MP4、SRT 和章节文件到 `videos/`，并更新校验清单。原始素材和验证记录继续保存在 `.local/`。
 
 ## 预览与渲染
 
@@ -53,7 +14,7 @@ npm run check
 npm run dev
 ```
 
-打开 `http://localhost:3100`，在左侧选择上表对应的 Composition。浏览器由 PATH 自动发现，也可通过 `REMOTION_BROWSER_EXECUTABLE` 指定。
+打开 `http://localhost:3100`，在左侧选择需要预览的 Composition。浏览器由 PATH 自动发现，也可通过 `REMOTION_BROWSER_EXECUTABLE` 指定。
 
 ```bash
 npm run render:final:stills # 检查七个分镜关键帧
@@ -189,5 +150,3 @@ python3 scripts/capture_avd.py --serial <本次实际的AVD序列号> screenshot
 原创工程代码沿用上级仓库 MIT 许可；Remotion 采用自定义许可证，个人及最多 3 名员工的营利组织可免费制作视频，包括商业用途。依赖与素材说明见 [LICENSES.md](LICENSES.md)。
 
 字体由本地 Noto Sans SC 包提供；氛围音和落子声由代码原创合成。MiMo 按用户提供的免费服务使用。
-
-`node_modules/`、音频缓存、原始录屏、AVD 状态与校验报告均已忽略；发布成片和字幕归档在 `videos/`。七手预览上限在 App 状态层统一处理，第三方 KataGo 源码保持不变。
