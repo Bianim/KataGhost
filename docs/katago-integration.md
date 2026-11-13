@@ -1,6 +1,6 @@
 # Architecture
 
-KataDroid uses **KataGo v1.18.2** for rules and search. Neural inference is supplied
+KataGhost uses **KataGo v1.18.2** for rules and search. Neural inference is supplied
 through LiteRT 2.2.0. The integration does not replace KataGo with a policy-only
 move picker or a handwritten approximation of its rules.
 
@@ -32,7 +32,7 @@ flowchart TD
 | `app/src/main/cpp/katago_jni.cpp` | Official rules/features/search adapter and LiteRT NN backend |
 | `third_party/katago/` | Unmodified upstream subset with SHA-256 inventory |
 
-The Kotlin paths are relative to `app/src/main/java/io/github/zhzy0077/katadroid/`.
+The Kotlin paths are relative to `app/src/main/java/io/github/bianim/kataghost/`.
 
 ## Search and lifetime
 

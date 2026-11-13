@@ -24,7 +24,7 @@ def main():
     test_class = {"engine": "NpuEngineIntegrationTest", "models": "NpuModelBenchmarkTest",
                   "probe": "NpuNetworkProbeTest#kataGoB6"}[args.suite]
     prefix = {"engine": "engine-device", "models": "models-device", "probe": "device"}[args.suite]
-    filters = ["KataDroidModel:I", "KataDroidEngine:I", "litert:I", "tflite:I", "qnn:W",
+    filters = ["KataGhostModel:I", "KataGhostEngine:I", "litert:I", "tflite:I", "qnn:W",
                "NeuronAdapter:I", "Neuron:I", "NeuroPilot:I", "neuron:I", "apusys:I", "apuware_hidl:I",
                "TestRunner:I", "AndroidRuntime:E", "libc:F", "*:S"]
     # Capture while the test runs: native compilation can fill the log buffer quickly.
@@ -35,8 +35,8 @@ def main():
         result = None
         try:
             result = subprocess.run(adb + ["shell", "am", "instrument", "-w", "-r", "-e", "class",
-                                     f"io.github.zhzy0077.katadroid.{test_class}",
-                                     "io.github.zhzy0077.katadroid.test/androidx.test.runner.AndroidJUnitRunner"],
+                                     f"io.github.bianim.kataghost.{test_class}",
+                                     "io.github.bianim.kataghost.test/androidx.test.runner.AndroidJUnitRunner"],
                                     capture_output=True, text=True, timeout=180)
             report = result.stdout + result.stderr
         except subprocess.TimeoutExpired as error:
@@ -48,7 +48,7 @@ def main():
             # Killing the local adb command does not stop remote instrumentation.
             # End only this test app so a timed-out audit cannot keep running NPU work.
             try:
-                stop = subprocess.run(adb + ["shell", "am", "force-stop", "io.github.zhzy0077.katadroid"],
+                stop = subprocess.run(adb + ["shell", "am", "force-stop", "io.github.bianim.kataghost"],
                                       capture_output=True, text=True, timeout=15)
                 report += f"Test app timeout cleanup returned {stop.returncode}\n"
             except subprocess.SubprocessError as cleanup_error:

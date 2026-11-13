@@ -46,7 +46,7 @@ export const Frame: React.FC<{durationInFrames?: number}> = ({durationInFrames =
     </svg>
     <div style={{position: 'absolute', top: 52, left: 104, display: 'flex', alignItems: 'center', gap: 17}}>
       <Img src={asset('icon.png')} style={{width: 54, height: 54, borderRadius: 16}}/>
-      <span style={{fontSize: 32, fontWeight: 720, letterSpacing: -0.8}}>KataDroid</span>
+      <span style={{fontSize: 32, fontWeight: 720, letterSpacing: -0.8}}>KataGhost</span>
       <span style={{width: 1, height: 26, background: '#afbeaa', margin: '0 10px'}}/>
       <span style={{fontSize: 21, color: C.muted, letterSpacing: 3}}>围棋的下一步</span>
     </div>
@@ -146,7 +146,7 @@ export const Teaser: React.FC<TeaserProps> = ({cues, captions}) => {
       </div>
     </Copy>
     <Copy start={213} stop={333} eyebrow="你的下一手，从这里开始" first="每一步，" second="都有思路。">
-      <div style={{fontSize: 29, color: C.muted, marginTop: 32}}>KataDroid · 随身复盘，自在对弈</div>
+      <div style={{fontSize: 29, color: C.muted, marginTop: 32}}>KataGhost · 随身复盘，自在对弈</div>
       <div style={{display: 'flex', alignItems: 'center', gap: 24, marginTop: 41}}>
         <div style={{display: 'flex', alignItems: 'center', gap: 30, borderRadius: 18,
           background: C.green, color: C.surface, padding: '17px 27px', fontSize: 25, fontWeight: 560}}>
@@ -154,7 +154,7 @@ export const Teaser: React.FC<TeaserProps> = ({cues, captions}) => {
         </div>
         <span style={{fontSize: 21, color: C.muted}}>Android 13 及以上</span>
       </div>
-      <div style={{fontSize: 23, color: C.green, marginTop: 25, letterSpacing: 0.2}}>github.com/zhzy0077/KataDroid</div>
+      <div style={{fontSize: 23, color: C.green, marginTop: 25, letterSpacing: 0.2}}>github.com/Bianim/KataGhost</div>
     </Copy>
     {captions && caption && <div style={{
       position: 'absolute', bottom: 54, left: 240, right: 240, textAlign: 'center',

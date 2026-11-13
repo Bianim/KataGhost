@@ -12,7 +12,7 @@ const tutorial = process.argv.includes('--tutorial');
 if (final && tutorial) throw new Error('请一次选择一个视频版本。');
 const kind = tutorial ? 'tutorial' : final ? 'promo' : 'teaser';
 const plan = JSON.parse(await readFile(join(root, 'content/' + kind + '.zh-CN.json'), 'utf8'));
-const stem = final || tutorial ? plan.slug : 'katadroid-teaser-zh-1080p';
+const stem = final || tutorial ? plan.slug : 'kataghost-teaser-zh-1080p';
 const output = join(root, '.local/output');
 await mkdir(output, {recursive: true});
 const manifest = JSON.parse(await readFile(join(root, '.local/public', plan.manifest ?? 'audio/manifest.json'), 'utf8'));
@@ -58,7 +58,7 @@ if (!stillsOnly) {
     codec: 'h264', pixelFormat: 'yuv420p', colorSpace: 'bt709', crf: 18,
     audioCodec: 'aac', audioBitrate: '192k', sampleRate: 48000,
     concurrency: 4, overwrite: true, logLevel: 'warn',
-    metadata: {title: tutorial ? plan.title : final ? 'KataDroid 中文宣传片 · 54 秒' : 'KataDroid 中文宣传片 · 10 秒样片', comment: '真实项目界面 / MiMo 中文旁白'},
+    metadata: {title: tutorial ? plan.title : final ? 'KataGhost 中文宣传片 · 54 秒' : 'KataGhost 中文宣传片 · 10 秒样片', comment: '真实项目界面 / MiMo 中文旁白'},
     onProgress: ({progress}) => {
       const percent = Math.floor(progress * 100 / 20) * 20;
       if (percent !== previous) {previous = percent; console.log('渲染 ' + percent + '%');}

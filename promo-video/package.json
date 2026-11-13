@@ -1,8 +1,8 @@
 {
-  "name": "katadroid-promo-video",
+  "name": "kataghost-promo-video",
   "version": "0.1.0",
   "private": true,
-  "description": "KataDroid 中文宣传片：Remotion 工程与 MiMo 配音工作流",
+  "description": "KataGhost 中文宣传片：Remotion 工程与 MiMo 配音工作流",
   "license": "MIT",
   "type": "module",
   "engines": {

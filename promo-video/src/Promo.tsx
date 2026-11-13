@@ -79,7 +79,7 @@ const SceneCopy: React.FC<{scene: Scene}> = ({scene}) => {
       <div style={{fontSize: 31, color: C.green, marginTop: 39, fontWeight: 520}}>把 KataGo 装进口袋。</div>
       <div style={{fontSize: 25, color: C.muted, marginTop: 17}}>方寸棋盘，也有无限可能。</div>
     </> : close ? <>
-      <div style={{fontSize: 28, color: C.muted, marginTop: 31}}>KataDroid · 随身复盘，自在对弈</div>
+      <div style={{fontSize: 28, color: C.muted, marginTop: 31}}>KataGhost · 随身复盘，自在对弈</div>
       <div style={{display: 'flex', alignItems: 'center', gap: 22, marginTop: 41}}>
         <div style={{display: 'flex', alignItems: 'center', gap: 28, borderRadius: 18, color: C.surface,
           background: C.green, padding: '17px 27px', fontSize: 25, fontWeight: 560}}>
@@ -87,7 +87,7 @@ const SceneCopy: React.FC<{scene: Scene}> = ({scene}) => {
         </div>
         <span style={{fontSize: 21, color: C.muted}}>Android 13 及以上</span>
       </div>
-      <div style={{fontSize: 22, color: C.green, marginTop: 27}}>github.com/zhzy0077/KataDroid</div>
+      <div style={{fontSize: 22, color: C.green, marginTop: 27}}>github.com/Bianim/KataGhost</div>
     </> : <>
       <div style={{fontSize: 27, color: C.muted, lineHeight: 1.95, marginTop: 34}}>
         {scene.body?.map((line) => <div key={line}>{line}</div>)}

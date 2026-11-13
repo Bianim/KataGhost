@@ -19,7 +19,7 @@ def main():
         if sha256(upstream / name) != expected:
             raise SystemExit(f"Upstream file mismatch: {name}")
     assets = ROOT / "app/src/main/assets/katago"
-    catalog = (ROOT / "app/src/main/java/io/github/zhzy0077/katadroid/engine/EngineConfig.kt").read_text()
+    catalog = (ROOT / "app/src/main/java/io/github/bianim/kataghost/engine/EngineConfig.kt").read_text()
     for model, fixture in (("b6c96", "fixtures.json"), ("b10c128", "b10c128-fixtures.json")):
         data = json.loads((assets / fixture).read_text())
         for suffix, key in (("tflite", "tfliteSha256"), ("bin", "descriptorSha256")):
@@ -37,7 +37,7 @@ def main():
         placeholders = [sorted(re.findall(r"%(\d+)\$[\d.]*([a-zA-Z])", s[name])) for s in strings]
         if placeholders[0] != placeholders[1]:
             raise SystemExit(f"Translation format mismatch: {name}")
-    for source, asset in (("LICENSE", "KataDroid-MIT.txt"), ("third_party/katago/LICENSE", "KataGo-LICENSE.txt"),
+    for source, asset in (("LICENSE", "KataGhost-MIT.txt"), ("third_party/katago/LICENSE", "KataGo-LICENSE.txt"),
                           ("THIRD_PARTY_NOTICES.md", "THIRD_PARTY_NOTICES.md")):
         if (ROOT / source).read_bytes() != (ROOT / "app/src/main/assets/licenses" / asset).read_bytes():
             raise SystemExit(f"Packaged license mismatch: {asset}")

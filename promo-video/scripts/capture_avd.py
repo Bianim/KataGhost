@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture only KataDroid on an explicitly selected Android Studio AVD."""
+"""Capture only KataGhost on an explicitly selected Android Studio AVD."""
 import argparse
 import json
 from pathlib import Path
@@ -9,7 +9,7 @@ import time
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE = "io.github.zhzy0077.katadroid"
+PACKAGE = "io.github.bianim.kataghost"
 CROP = "1080:2272:0:64"
 
 
@@ -58,12 +58,12 @@ class Avd:
         state = self.shell("dumpsys", "activity", "activities")
         resumed = [line for line in state.splitlines() if "topResumedActivity=" in line or "mResumedActivity:" in line]
         if not any(PACKAGE in line for line in resumed):
-            raise RuntimeError("前台不是 KataDroid，停止生成可发布素材。")
+            raise RuntimeError("前台不是 KataGhost，停止生成可发布素材。")
 
     def dump(self, name="current"):
-        self.shell("uiautomator", "dump", "/sdcard/katadroid-promo-ui.xml")
+        self.shell("uiautomator", "dump", "/sdcard/kataghost-promo-ui.xml")
         path = self.ui / (name + ".xml")
-        self.run("pull", "/sdcard/katadroid-promo-ui.xml", path)
+        self.run("pull", "/sdcard/kataghost-promo-ui.xml", path)
         return ET.parse(path)
 
     @staticmethod
@@ -147,7 +147,7 @@ class Avd:
         self.assert_app()
         if seconds <= 0 or seconds > 170:
             raise ValueError("镜头时长无效。")
-        device_path = "/sdcard/katadroid-promo-" + name + ".mp4"
+        device_path = "/sdcard/kataghost-promo-" + name + ".mp4"
         path = self.raw / (name + ".mp4")
         log_path = self.raw / (name + "-screenrecord.log")
         started = time.monotonic()

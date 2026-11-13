@@ -1,4 +1,8 @@
-# KataDroid
+# KataGhost
+
+KataGhost 由 Bianim 维护。下文设备验证、性能数据和版本升级说明来自上游 KataDroid
+的历史构建。KataGhost 发布版本使用自己的签名密钥，并需要独立验证。
+旧应用中的棋谱可导出为 SGF 后导入 KataGhost。
 
 [English](README.md) · [使用说明](docs/usage.zh-CN.md) · [技术架构](docs/katago-integration.md) · [模型与性能](docs/models-and-benchmarks.md)
 
@@ -30,7 +34,7 @@
 
 ## 开始使用
 
-从 [GitHub Releases](https://github.com/zhzy0077/KataDroid/releases) 下载。
+从 [GitHub Releases](https://github.com/Bianim/KataGhost/releases) 下载。
 手机和平板推荐 **arm64-v8a**，x86 设备或模拟器选择 **x86_64**；通用 APK 包含两种架构。
 不支持 ARMv7。
 
@@ -40,7 +44,7 @@
 首次启动显示 AlphaGo 对李世石第四局（2016-03-13）的前 50 手，停在第 50 手；
 胜率和推荐点由引擎实际计算。
 
-语言可以在 Android 系统设置 → 应用 → KataDroid → 语言中切换。
+语言可以在 Android 系统设置 → 应用 → KataGhost → 语言中切换。
 更多操作见[中文使用说明](docs/usage.zh-CN.md)。
 
 ## 设备支持

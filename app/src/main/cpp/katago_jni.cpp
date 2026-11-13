@@ -290,14 +290,14 @@ struct Engine {
     try {
       evaluator = std::make_unique<NNEvaluator>(name, path, "", &logger,
           1, 19, 19, true, true, 12, 8, false, "", enabled_t::False,
-          1, std::vector<int>{-1}, "katadroid-nn", false, 0, config);
+          1, std::vector<int>{-1}, "kataghost-nn", false, 0, config);
       constructingBridge = nullptr;
       evaluator->spawnServerThreads();
       SearchParams params;
       params.numThreads = 1;
       params.nodeTableShardsPowerOfTwo = 10;
       params.subtreeValueBiasTableNumShards = 1024;
-      search = std::make_unique<Search>(params, evaluator.get(), &logger, "katadroid-search");
+      search = std::make_unique<Search>(params, evaluator.get(), &logger, "kataghost-search");
     } catch (...) { constructingBridge = nullptr; throw; }
   }
 };
@@ -311,7 +311,7 @@ int point(Loc loc) { return NNPos::locToPos(loc, 19, 19, 19); }
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* javaVm, void*) { vm = javaVm; return JNI_VERSION_1_6; }
 
 extern "C" JNIEXPORT jintArray JNICALL
-Java_io_github_zhzy0077_katadroid_engine_NativeKataGo_boardPosition(JNIEnv* env, jobject, jstring input) {
+Java_io_github_bianim_kataghost_engine_NativeKataGo_boardPosition(JNIEnv* env, jobject, jstring input) {
   try {
     initialize();
     Position p(env, input);
@@ -330,7 +330,7 @@ Java_io_github_zhzy0077_katadroid_engine_NativeKataGo_boardPosition(JNIEnv* env,
 }
 
 extern "C" JNIEXPORT jfloatArray JNICALL
-Java_io_github_zhzy0077_katadroid_engine_NativeKataGo_featuresPosition(JNIEnv* env, jobject, jstring input) {
+Java_io_github_bianim_kataghost_engine_NativeKataGo_featuresPosition(JNIEnv* env, jobject, jstring input) {
   try {
     initialize();
     Position p(env, input);
@@ -343,22 +343,22 @@ Java_io_github_zhzy0077_katadroid_engine_NativeKataGo_featuresPosition(JNIEnv* e
 }
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_io_github_zhzy0077_katadroid_engine_NativeKataGo_create(JNIEnv* env, jobject, jobject runtime, jstring path, jstring name, jint version) {
+Java_io_github_bianim_kataghost_engine_NativeKataGo_create(JNIEnv* env, jobject, jobject runtime, jstring path, jstring name, jint version) {
   try { initialize(); return reinterpret_cast<jlong>(new Engine(env, runtime, javaString(env, path), javaString(env, name), version)); }
   catch (const std::exception& error) { throwJava(env, error); return 0; }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_io_github_zhzy0077_katadroid_engine_NativeKataGo_destroy(JNIEnv*, jobject, jlong handle) { delete reinterpret_cast<Engine*>(handle); }
+Java_io_github_bianim_kataghost_engine_NativeKataGo_destroy(JNIEnv*, jobject, jlong handle) { delete reinterpret_cast<Engine*>(handle); }
 
 extern "C" JNIEXPORT void JNICALL
-Java_io_github_zhzy0077_katadroid_engine_NativeKataGo_setPositionJson(JNIEnv* env, jobject, jlong handle, jstring input) {
+Java_io_github_bianim_kataghost_engine_NativeKataGo_setPositionJson(JNIEnv* env, jobject, jlong handle, jstring input) {
   try { Position p(env, input); engine(handle).search->setPosition(p.next, p.board, p.history); }
   catch (const std::exception& error) { throwJava(env, error); }
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_io_github_zhzy0077_katadroid_engine_NativeKataGo_clearSearchAndCache(JNIEnv* env, jobject, jlong handle) {
+Java_io_github_bianim_kataghost_engine_NativeKataGo_clearSearchAndCache(JNIEnv* env, jobject, jlong handle) {
   try {
     auto& e = engine(handle);
     e.search->clearSearch();
@@ -432,12 +432,12 @@ static jstring analyzeSearch(JNIEnv* env, jlong handle, jint visits, jint millis
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_io_github_zhzy0077_katadroid_engine_NativeKataGo_analyze(JNIEnv* env, jobject, jlong handle, jint visits, jobject cancelled) {
+Java_io_github_bianim_kataghost_engine_NativeKataGo_analyze(JNIEnv* env, jobject, jlong handle, jint visits, jobject cancelled) {
   return analyzeSearch(env, handle, visits, 0, cancelled);
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_io_github_zhzy0077_katadroid_engine_NativeKataGo_analyzeForTime(JNIEnv* env, jobject, jlong handle, jint milliseconds, jint visits, jobject cancelled) {
+Java_io_github_bianim_kataghost_engine_NativeKataGo_analyzeForTime(JNIEnv* env, jobject, jlong handle, jint milliseconds, jint visits, jobject cancelled) {
   if (milliseconds < 1 || milliseconds > 5000) {
     throwJava(env, std::runtime_error("Invalid analysis interval"));
     return nullptr;
@@ -448,7 +448,7 @@ Java_io_github_zhzy0077_katadroid_engine_NativeKataGo_analyzeForTime(JNIEnv* env
 // Also exposes the official postprocessed network for numerical integration
 // tests; this follows the very same backend and legality path used by search.
 extern "C" JNIEXPORT jstring JNICALL
-Java_io_github_zhzy0077_katadroid_engine_NativeKataGo_evaluatePosition(JNIEnv* env, jobject, jlong handle, jstring input, jint symmetry) {
+Java_io_github_bianim_kataghost_engine_NativeKataGo_evaluatePosition(JNIEnv* env, jobject, jlong handle, jstring input, jint symmetry) {
   try {
     auto& e = engine(handle);
     Position p(env, input);

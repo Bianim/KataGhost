@@ -1,4 +1,4 @@
-# KataDroid Android 手机界面
+# KataGhost Android 手机界面
 
 直接打开 `index.html`，无需依赖或联网。设计基准为 **412 × 915 dp Android 竖屏手机**；桌面展示手机画布，手机占满实际视口。
 

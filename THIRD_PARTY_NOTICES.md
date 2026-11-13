@@ -1,6 +1,6 @@
 # Third-party notices
 
-KataDroid's original code is licensed under [MIT](LICENSE). Third-party code,
+KataGhost's original code is licensed under [MIT](LICENSE). Third-party code,
 weights and runtimes retain their respective licenses. MIT does not relicense
 those dependencies. License copies for bundled source are also packaged under
 `app/src/main/assets/licenses/` in the APK.
@@ -62,4 +62,4 @@ of the bundled g170/CC0 models.
 
 Consult the dependency distributions and their terms when redistributing a
 build containing vendor runtime binaries. This repository's MIT license applies
-to KataDroid's own integration code, not to the vendor runtimes.
+to KataGhost's own integration code, not to the vendor runtimes.

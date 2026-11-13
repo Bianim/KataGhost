@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(katadroid LANGUAGES CXX)
+project(kataghost LANGUAGES CXX)
 
 # Unmodified, pinned upstream rules/features/search. No desktop executable or
 # alternate neural network implementation is compiled into the application.
@@ -34,7 +34,7 @@ set_target_properties(katago_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(katago_core PUBLIC ${KATAGO} ${KATAGO}/external/filesystem-1.5.8/include)
 target_compile_options(katago_core PRIVATE -O2 -ffunction-sections -fdata-sections)
 
-add_library(katadroid SHARED katago_jni.cpp)
-target_compile_options(katadroid PRIVATE -O2 -ffunction-sections -fdata-sections)
-target_link_options(katadroid PRIVATE -Wl,--gc-sections -Wl,-z,max-page-size=16384)
-target_link_libraries(katadroid PRIVATE katago_core z log)
+add_library(kataghost SHARED katago_jni.cpp)
+target_compile_options(kataghost PRIVATE -O2 -ffunction-sections -fdata-sections)
+target_link_options(kataghost PRIVATE -Wl,--gc-sections -Wl,-z,max-page-size=16384)
+target_link_libraries(kataghost PRIVATE katago_core z log)

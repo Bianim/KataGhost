@@ -12,7 +12,7 @@ final = "--final" in sys.argv
 tutorial = "--tutorial" in sys.argv
 kind = "tutorial" if tutorial else "promo" if final else "teaser"
 plan = json.loads((ROOT / f"content/{kind}.zh-CN.json").read_text())
-video = ROOT / ".local/output" / ((plan["slug"] if final or tutorial else "katadroid-teaser-zh-1080p") + ".mp4")
+video = ROOT / ".local/output" / ((plan["slug"] if final or tutorial else "kataghost-teaser-zh-1080p") + ".mp4")
 manifest = json.loads((ROOT / ".local/public" / plan.get("manifest", "audio/manifest.json")).read_text())
 data = json.loads(subprocess.check_output([
     "ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", str(video)

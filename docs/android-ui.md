@@ -94,5 +94,5 @@ picker. Import checks hashes, graph boundaries, CPU references and the matching
 KataGo descriptor. Select the imported model explicitly to use it; both bundled
 models remain available. See [package format](model-conversion.md#optional-transformer-packages).
 
-Change the app language under Android Settings → Apps → KataDroid → Language.
+Change the app language under Android Settings → Apps → KataGhost → Language.
 English and Simplified Chinese are included; other system languages use English.

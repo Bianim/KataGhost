@@ -46,10 +46,10 @@ jobs:
           version="${RELEASE_TAG#v}"
           echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
           mkdir -p dist
-          gh release download "$RELEASE_TAG" --pattern "KataDroid-$version.apk" --pattern SHA256SUMS --dir dist
-          (cd dist && awk -v name="KataDroid-$version.apk" '$2 == name || $2 == "./" name' SHA256SUMS > original.sha256 && test -s original.sha256 && sha256sum -c original.sha256)
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify "dist/KataDroid-$version.apk"
-          python3 tools/check_release_apk.py "dist/KataDroid-$version.apk"
+          gh release download "$RELEASE_TAG" --pattern "KataGhost-$version.apk" --pattern SHA256SUMS --dir dist
+          (cd dist && awk -v name="KataGhost-$version.apk" '$2 == name || $2 == "./" name' SHA256SUMS > original.sha256 && test -s original.sha256 && sha256sum -c original.sha256)
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify "dist/KataGhost-$version.apk"
+          python3 tools/check_release_apk.py "dist/KataGhost-$version.apk"
           python3 -m pip install -r tools/portable-model-requirements.txt
           python3 -m unittest discover -s tools/tests
       - name: Create and verify signed ABI APKs
@@ -71,13 +71,13 @@ jobs:
           trap 'rm -f "$keystore"' EXIT
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
           tools="$ANDROID_HOME/build-tools/36.0.0"
-          original="dist/KataDroid-${RELEASE_VERSION}.apk"
+          original="dist/KataGhost-${RELEASE_VERSION}.apk"
           variants="$RUNNER_TEMP/apk-variants"
           python3 tools/split_release_apk.py "$original" "$variants"
           original_cert=$("$tools/apksigner" verify --print-certs "$original" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
           test -n "$original_cert"
           for abi in arm64-v8a x86_64; do
-            apk="dist/KataDroid-${RELEASE_VERSION}-$abi.apk"
+            apk="dist/KataGhost-${RELEASE_VERSION}-$abi.apk"
             "$tools/zipalign" -P 16 -f 4 "$variants/$abi-unsigned.apk" "$RUNNER_TEMP/aligned-$abi.apk"
             "$tools/apksigner" sign --ks "$keystore" --ks-key-alias "$KEY_ALIAS" \
               --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEY_PASSWORD \
@@ -97,6 +97,6 @@ jobs:
         run: |
           set -euo pipefail
           gh release upload "$RELEASE_TAG" \
-            "dist/KataDroid-${RELEASE_VERSION}-arm64-v8a.apk" \
-            "dist/KataDroid-${RELEASE_VERSION}-x86_64.apk" --clobber
+            "dist/KataGhost-${RELEASE_VERSION}-arm64-v8a.apk" \
+            "dist/KataGhost-${RELEASE_VERSION}-x86_64.apk" --clobber
           gh release upload "$RELEASE_TAG" dist/SHA256SUMS --clobber

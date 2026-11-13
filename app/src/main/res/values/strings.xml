@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">KataDroid</string>
+    <string name="app_name">KataGhost</string>
     <string name="back">Back</string>
     <string name="settings">Settings</string>
     <string name="cancel">Cancel</string>

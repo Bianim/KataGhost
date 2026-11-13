@@ -1,13 +1,13 @@
 {
-  "id": "KataDroid-Promo-ZH",
-  "slug": "katadroid-promo-zh-54s",
+  "id": "KataGhost-Promo-ZH",
+  "slug": "kataghost-promo-zh-54s",
   "width": 1920,
   "height": 1080,
   "fps": 30,
   "durationInFrames": 1620,
   "manifest": "audio/promo-manifest.json",
   "voice": "白桦",
-  "style": "用清晰、温暖、笃定的普通话介绍一款围棋应用。延续自然、克制的产品介绍风格，音色和音量保持稳定，每秒约四个汉字，咬字清楚，句尾自然收住。像向朋友介绍自己喜欢的产品。KataGo 读作「卡塔狗」。SGF 按三个英文字母朗读。KataDroid 按英文品牌名朗读。只朗读给定文本。",
+  "style": "用清晰、温暖、笃定的普通话介绍一款围棋应用。延续自然、克制的产品介绍风格，音色和音量保持稳定，每秒约四个汉字，咬字清楚，句尾自然收住。像向朋友介绍自己喜欢的产品。KataGo 读作「卡塔狗」。SGF 按三个英文字母朗读。KataGhost 按英文品牌名朗读。只朗读给定文本。",
   "scenes": [
     {
       "id": "intro",
@@ -202,8 +202,8 @@
       "id": "download",
       "from": 1536,
       "slotSeconds": 2.5,
-      "text": "KataDroid，免费下载。",
-      "caption": "KataDroid，免费下载"
+      "text": "KataGhost，免费下载。",
+      "caption": "KataGhost，免费下载"
     }
   ]
 }

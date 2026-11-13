@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "KataDroid"
+rootProject.name = "KataGhost"
 include(":app")

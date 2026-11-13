@@ -4,14 +4,14 @@ plugins {
 }
 
 android {
-    namespace = "io.github.zhzy0077.katadroid"
+    namespace = "io.github.bianim.kataghost"
     ndkVersion = "28.2.13676358"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "io.github.zhzy0077.katadroid"
+        applicationId = "io.github.bianim.kataghost"
         minSdk = 33
         targetSdk = 37
         versionCode = providers.gradleProperty("releaseVersionCode").orNull?.toInt() ?: 1

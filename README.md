@@ -1,4 +1,9 @@
-# KataDroid
+# KataGhost
+
+KataGhost is maintained by Bianim. Device validation, benchmarks and release
+upgrade details below describe historical upstream KataDroid builds. KataGhost
+releases use their own signing identity and require independent validation.
+Export games as SGF from the old app and import them into KataGhost.
 
 [简体中文](README.zh-CN.md) · [User guide](docs/android-ui.md) · [Architecture](docs/katago-integration.md) · [Performance](docs/models-and-benchmarks.md)
 
@@ -36,7 +41,7 @@ neural inference. No account or analysis server is required.
 
 ## How to use
 
-Download from [GitHub Releases](https://github.com/zhzy0077/KataDroid/releases).
+Download from [GitHub Releases](https://github.com/Bianim/KataGhost/releases).
 Choose **arm64-v8a** for phones and tablets, **x86_64** for x86 devices/emulators,
 or the universal APK for both architectures. ARMv7 is not supported.
 
@@ -53,12 +58,12 @@ record history at that budget before continuously deepening the selected positio
 Its visit counter can stay at 500 while historical positions are being analyzed.
 
 Android 13+ supports choosing English or Chinese in system Settings → Apps →
-KataDroid → Language. The app initially opens the first 50 moves of AlphaGo–Lee Sedol, game 4
+KataGhost → Language. The app initially opens the first 50 moves of AlphaGo–Lee Sedol, game 4
 (2016-03-13); analysis and candidate values come from real search.
 
 ## Device and SoC compatibility
 
-KataDroid targets **Android 13 / API 33 or newer**, with `arm64-v8a` and `x86_64`
+KataGhost targets **Android 13 / API 33 or newer**, with `arm64-v8a` and `x86_64`
 builds. CPU inference works independently of phone brand or SoC; the app has no
 model or SoC allowlist. NPU acceleration depends on the plugins included in your
 APK, the device's vendor drivers and the selected network.
@@ -114,7 +119,7 @@ b10c128 is larger. More visits/s alone does not mean stronger play.
 ## Share compatibility test feedback
 
 **Reports from other devices are welcome, including failures and CPU fallback.**
-[Open a compatibility report](https://github.com/zhzy0077/KataDroid/issues/new)
+[Open a compatibility report](https://github.com/Bianim/KataGhost/issues/new)
 with:
 
 - Phone manufacturer and model, **SoC name** and Android version.
@@ -171,5 +176,5 @@ See [architecture](docs/katago-integration.md) and [model conversion](docs/model
 
 ## License
 
-KataDroid code is [MIT](LICENSE). KataGo source, external libraries, CC0 g170
+KataGhost code is [MIT](LICENSE). KataGo source, external libraries, CC0 g170
 weights and vendor runtime terms are documented in [Third-party notices](THIRD_PARTY_NOTICES.md).

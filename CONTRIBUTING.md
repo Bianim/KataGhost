@@ -2,8 +2,8 @@
 
 Use the toolchain in [README.md](README.md). A clean checkout builds a CPU-capable
 APK from the included models and source; local conversion environments and NPU
-plugins are optional. The application ID is `io.github.zhzy0077.katadroid`. Android treats it as a
-separate app from earlier `com.example.katadroid` builds. Export existing games
+plugins are optional. The application ID is `io.github.bianim.kataghost`. Android treats it as a
+separate app from upstream `io.github.zhzy0077.katadroid` builds. Export existing games
 as SGF in the old app and import them into the new app.
 
 ## Checks
@@ -28,7 +28,7 @@ adb devices -l
 adb -s <avd-serial> install -r app/build/outputs/apk/debug/app-debug.apk
 adb -s <avd-serial> install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 adb -s <avd-serial> shell am instrument -w -r \
-  io.github.zhzy0077.katadroid.test/androidx.test.runner.AndroidJUnitRunner
+  io.github.bianim.kataghost.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
 Tests cover official numerical references, rules/legality, SGF round trips,
@@ -37,7 +37,7 @@ Chinese UI flows, touch offsets, landscape layout and chart navigation. Locale
 rules change only this app's language and restore it after each test. NPU tests
 skip on CPU-only environments; a skip is not a successful NPU validation.
 
-For a single class, insert `-e class io.github.zhzy0077.katadroid.EnglishUiTest` before
+For a single class, insert `-e class io.github.bianim.kataghost.EnglishUiTest` before
 the instrumentation runner component. Raw output belongs in `.local/`, not Git.
 
 ## Physical NPU tests
@@ -80,9 +80,9 @@ the median result in the app. Run each model/backend in a separate invocation:
 ```bash
 adb devices -l
 adb -s <test-serial> shell am instrument -w -r \
-  -e class io.github.zhzy0077.katadroid.ProductionBenchmarkTest \
+  -e class io.github.bianim.kataghost.ProductionBenchmarkTest \
   -e backend CPU -e model b10c128 -e rounds 3 -e controllerPath true \
-  io.github.zhzy0077.katadroid.test/androidx.test.runner.AndroidJUnitRunner \
+  io.github.bianim.kataghost.test/androidx.test.runner.AndroidJUnitRunner \
   > .local/production-CPU-b10.log
 ```
 
@@ -127,7 +127,7 @@ release key). Keep a secure backup: subsequent APK updates require the same key.
 
 ```bash
 mkdir -p .local/signing
-keytool -genkeypair -keystore .local/signing/release.jks -alias katadroid \
+keytool -genkeypair -keystore .local/signing/release.jks -alias kataghost \
   -keyalg RSA -keysize 4096 -validity 10000
 ```
 
@@ -138,7 +138,7 @@ variables → Actions**:
 | --- | --- |
 | `ANDROID_KEYSTORE_BASE64` | Base64-encoded keystore file |
 | `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
-| `ANDROID_KEY_ALIAS` | Signing alias, e.g. `katadroid` |
+| `ANDROID_KEY_ALIAS` | Signing alias, e.g. `kataghost` |
 | `ANDROID_KEY_PASSWORD` | Private-key password (often the same as the keystore password) |
 
 For example, upload the keystore secret without printing it:
@@ -155,7 +155,7 @@ is needed. Repository or organization policy must allow this permission.
 After committing and pushing the workflow and release changes:
 
 ```bash
-git tag -a v1.0.0 -m 'KataDroid 1.0.0'
+git tag -a v1.0.0 -m 'KataGhost 1.0.0'
 git push origin v1.0.0
 ```
 

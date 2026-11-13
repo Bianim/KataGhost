@@ -9,7 +9,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.KataDroid">
+        android:theme="@style/Theme.KataGhost">
         <uses-native-library android:name="libneuronusdk_adapter.mtk.so" android:required="false" />
         <uses-native-library android:name="libneuronusdk_adapter.9.mtk.so" android:required="false" />
         <uses-native-library android:name="libneuron_adapter_mgvi.so" android:required="false" />
@@ -17,7 +17,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.KataDroid"
+            android:theme="@style/Theme.KataGhost"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,4 +1,4 @@
-# KataDroid 中文视频
+# KataGhost 中文视频
 
 独立于 Android 构建的 **Remotion + MiMo TTS** 工程。
 
@@ -24,7 +24,7 @@ npm run verify:final        # 验证总时长、1620 帧、音视频与片尾二
 
 正式版输出：
 
-- `.local/output/katadroid-promo-zh-54s.mp4`
+- `.local/output/kataghost-promo-zh-54s.mp4`
 - `.local/output/promo.zh-CN.srt`
 - `.local/output/promo-01-intro.png` 至 `promo-07-close.png`
 - `.local/output/promo-verification.json`
@@ -43,7 +43,7 @@ npm run verify:tutorial        # 全片解码、音轨、素材、分析来源�
 
 输出位于 `.local/output/`：
 
-- `katadroid-tutorial-zh-vertical-58s.mp4`
+- `kataghost-tutorial-zh-vertical-58s.mp4`
 - `tutorial.zh-CN.srt`
 - `tutorial.chapters.txt`
 - `tutorial-01-curve.png` 至 `tutorial-08-save.png`
@@ -112,7 +112,7 @@ unset MIMO_API_KEY
 | `scripts/tutorial_source.py` | 验证真实分析、定位转折 |
 | `scripts/verify_tutorial.py` | 离线校验教程素材、旁白、分析证据和导出分支 |
 
-正式版的片尾二维码指向 `https://github.com/zhzy0077/KataDroid/releases`。
+正式版的片尾二维码指向 `https://github.com/Bianim/KataGhost/releases`。
 
 ## 实录素材
 

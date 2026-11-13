@@ -107,11 +107,11 @@ jobs:
           for abi in universal arm64-v8a x86_64; do
             if [[ "$abi" == universal ]]; then
               input="$source_apk"
-              apk="dist/KataDroid-${RELEASE_VERSION}.apk"
+              apk="dist/KataGhost-${RELEASE_VERSION}.apk"
               abis=(arm64-v8a x86_64)
             else
               input="$variants/$abi-unsigned.apk"
-              apk="dist/KataDroid-${RELEASE_VERSION}-$abi.apk"
+              apk="dist/KataGhost-${RELEASE_VERSION}-$abi.apk"
               abis=("$abi")
             fi
             "$tools/zipalign" -P 16 -f 4 "$input" "$RUNNER_TEMP/aligned-$abi.apk"
@@ -153,11 +153,11 @@ jobs:
               exit 1
             fi
             gh release upload "$RELEASE_TAG" dist/*.apk dist/SHA256SUMS --clobber
-            gh release edit "$RELEASE_TAG" --title "KataDroid $RELEASE_TAG" \
+            gh release edit "$RELEASE_TAG" --title "KataGhost $RELEASE_TAG" \
               --notes-file "$RUNNER_TEMP/release-notes.md" --target "$GITHUB_SHA"
           else
             gh release create "$RELEASE_TAG" dist/*.apk dist/SHA256SUMS \
-              --draft --verify-tag --title "KataDroid $RELEASE_TAG" --generate-notes \
+              --draft --verify-tag --title "KataGhost $RELEASE_TAG" --generate-notes \
               --notes-file "$RUNNER_TEMP/release-notes.md" "${flags[@]}"
           fi
           gh release edit "$RELEASE_TAG" --draft=false

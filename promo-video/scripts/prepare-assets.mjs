@@ -40,7 +40,7 @@ await writeFile(join(publicDir, 'audio/ambience-full.wav'), makeAmbience(54));
 const tutorialPlan = JSON.parse(await readFile(join(root, 'content/tutorial.zh-CN.json'), 'utf8'));
 await writeFile(join(publicDir, 'audio/ambience-tutorial.wav'), makeAmbience(tutorialPlan.durationInFrames / tutorialPlan.fps));
 await writeFile(join(publicDir, 'assets/download-qr.svg'), await QRCode.toString(
-  'https://github.com/zhzy0077/KataDroid/releases',
+  'https://github.com/Bianim/KataGhost/releases',
   {type: 'svg', errorCorrectionLevel: 'M', margin: 4, width: 280,
     color: {dark: '#28634E', light: '#FFFEF8'}},
 ));

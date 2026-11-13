@@ -1,14 +1,14 @@
 {
-  "id": "KataDroid-Tutorial-ZH",
-  "slug": "katadroid-tutorial-zh-vertical-58s",
-  "title": "KataDroid 一分钟竖屏复盘教程",
+  "id": "KataGhost-Tutorial-ZH",
+  "slug": "kataghost-tutorial-zh-vertical-58s",
+  "title": "KataGhost 一分钟竖屏复盘教程",
   "width": 1080,
   "height": 1920,
   "fps": 30,
   "durationInFrames": 1740,
   "manifest": "audio/tutorial-manifest.json",
   "voice": "白桦",
-  "style": "用清晰、温暖、耐心的普通话讲解围棋应用的操作。保持自然稳定的教学语气，语速舒缓，每秒约三到四个汉字，给步骤之间留一点停顿。音色和音量保持稳定，咬字清晰。KataGo 读作「卡塔狗」。SGF、AI、A、B、C 按英文字母朗读。KataDroid 按英文品牌名朗读。只朗读给定文本。",
+  "style": "用清晰、温暖、耐心的普通话讲解围棋应用的操作。保持自然稳定的教学语气，语速舒缓，每秒约三到四个汉字，给步骤之间留一点停顿。音色和音量保持稳定，咬字清晰。KataGo 读作「卡塔狗」。SGF、AI、A、B、C 按英文字母朗读。KataGhost 按英文品牌名朗读。只朗读给定文本。",
   "scenes": [
     {
       "id": "intro",

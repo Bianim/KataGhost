@@ -11,8 +11,8 @@ class SplitApkTest(unittest.TestCase):
             "AndroidManifest.xml": b"manifest",
             "classes.dex": b"bytecode",
             "assets/katago/b6c96.tflite": b"model",
-            "lib/arm64-v8a/libkatadroid.so": b"arm64",
-            "lib/x86_64/libkatadroid.so": b"x86",
+            "lib/arm64-v8a/libkataghost.so": b"arm64",
+            "lib/x86_64/libkataghost.so": b"x86",
             "META-INF/CERT.RSA": b"obsolete signature",
             "META-INF/library.kotlin_module": b"metadata",
         }
@@ -35,6 +35,6 @@ class SplitApkTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "armv7.apk"
             with zipfile.ZipFile(source, "w") as apk:
-                apk.writestr("lib/armeabi-v7a/libkatadroid.so", b"armv7")
+                apk.writestr("lib/armeabi-v7a/libkataghost.so", b"armv7")
             with self.assertRaises(ValueError):
                 split_apk(source, Path(directory) / "variants")

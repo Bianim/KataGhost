@@ -122,7 +122,7 @@ export const Tutorial: React.FC<TutorialProps> = ({cues, captions, touches}) => 
     background: C.paper, overflow: 'hidden', WebkitFontSmoothing: 'antialiased'}}>
     <div style={{position: 'absolute', top: 42, left: 64, display: 'flex', alignItems: 'center', gap: 15}}>
       <Img src={staticFile('assets/icon.png')} style={{width: 49, height: 49, borderRadius: 13}}/>
-      <span style={{fontSize: 35, fontWeight: 750, letterSpacing: -.8}}>KataDroid</span>
+      <span style={{fontSize: 35, fontWeight: 750, letterSpacing: -.8}}>KataGhost</span>
     </div>
     {plan.scenes.map((scene) => <Sequence key={scene.id} from={scene.from} durationInFrames={scene.duration}>
       <Lesson scene={scene} touches={touches}/>

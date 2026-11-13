@@ -30,7 +30,7 @@ def main():
                     or int.from_bytes(header[18:20], "little") != 183):
                 raise RuntimeError(f"Expected arm64 ELF library: {path}")
         for abi in args.abis:
-            if f"lib/{abi}/libkatadroid.so" not in names:
+            if f"lib/{abi}/libkataghost.so" not in names:
                 raise RuntimeError(f"Release APK is missing KataGo for {abi}")
         for model in ("b6c96", "b10c128"):
             for extension in ("bin", "tflite"):
