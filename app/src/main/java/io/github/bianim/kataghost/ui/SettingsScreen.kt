@@ -99,7 +99,7 @@ fun SettingsScreen(
                 Hint(resources.getString(R.string.candidate_color_hint))
                 HorizontalDivider(color = GoColors.Outline)
                 IntegerSetting(resources.getString(R.string.touch_offset), "px", draftOffset, 0..300,
-                    listOf(0, 60, 120), "touch-offset") { draftOffset = it }
+                    listOf(0, 60, 120, 150, 180), "touch-offset") { draftOffset = it }
                 Hint(resources.getString(R.string.touch_hint))
             }
             SettingsCard {
@@ -127,6 +127,7 @@ fun SettingsScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun IntegerSetting(label: String, unit: String, draft: String, range: IntRange, presets: List<Int>, tag: String, onChange: (String) -> Unit) {
     val resources = LocalResources.current
@@ -136,7 +137,7 @@ private fun IntegerSetting(label: String, unit: String, draft: String, range: In
         suffix = { Text(unit) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         isError = parsed == null, supportingText = { Text(resources.getString(R.string.range_hint, range.first, range.last, unit)) },
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("$tag-input"))
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         presets.forEach { preset ->
             FilterChip(selected = parsed == preset, onClick = { onChange(preset.toString()); focus.clearFocus() },
                 label = { Text(preset.toString(), fontSize = 12.sp) }, modifier = Modifier.testTag("$tag-$preset"))

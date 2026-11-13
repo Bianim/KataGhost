@@ -25,7 +25,7 @@ data class AppPreferences(
     val engineConfig get() = EngineConfig(model, backend)
     fun automatic(color: Int) = if (color == 1) autoBlack else autoWhite
     val hasAutomaticPlayer get() = autoBlack || autoWhite
-    val showCandidateMoves get() = candidates && !hasAutomaticPlayer
+    val showCandidateMoves get() = candidates
 
     fun save(context: Context) = context.getSharedPreferences("board_preferences", Context.MODE_PRIVATE).edit {
         putBoolean("coordinates", coordinates); putBoolean("candidates", candidates)

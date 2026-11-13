@@ -103,7 +103,7 @@ class SettingsFeatureUiTest {
     }
 
     @Test fun offsetsUsePhysicalPixelsAndSupportDraggingBottomRowAndCancellation() {
-        for (offset in listOf(0, 60, 120)) {
+        for (offset in listOf(0, 60, 120, 150, 180)) {
             openSettings()
             ui.onNodeWithTag("touch-offset-$offset").performScrollTo().performClick()
             if (offset != document.preferences.touchOffsetPx) ui.onNodeWithTag("apply-settings").performClick()
@@ -137,7 +137,7 @@ class SettingsFeatureUiTest {
             assertEquals(2, count())
         }
         ui.activityRule.scenario.recreate()
-        assertEquals(120, AppPreferences.load(ui.activity).touchOffsetPx)
+        assertEquals(180, AppPreferences.load(ui.activity).touchOffsetPx)
         assertEquals(2, count())
     }
 
