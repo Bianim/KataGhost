@@ -61,7 +61,8 @@ fun GoBoard(
     showCoordinates: Boolean,
     showCandidates: Boolean,
     modifier: Modifier = Modifier,
-    touchOffsetPx: Int = 0,
+    pendingMove: Int? = null,
+    onSelectMove: (Int) -> Unit = {},
     manualInput: Boolean = true,
 ) {
     val resources = LocalResources.current
@@ -77,15 +78,13 @@ fun GoBoard(
     val candidates = evaluatedCandidates.filter { it.move in 0..360 }
     val haptics = LocalHapticFeedback.current
     val currentCandidates by rememberUpdatedState(candidates)
-    var touchPoint by remember(position, touchOffsetPx) { mutableStateOf<Int?>(null) }
+    var touchPoint by remember(position) { mutableStateOf<Int?>(null) }
     val paint = remember { Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER; typeface = Typeface.create("sans-serif", Typeface.NORMAL) } }
     val shape = RoundedCornerShape(12.dp)
-    BoxWithConstraints(modifier.testTag("board-input").pointerInput(position, preview, touchOffsetPx, manualInput) {
+    BoxWithConstraints(modifier.testTag("board-input").pointerInput(position, preview, manualInput) {
         fun pointAt(offset: Offset): Int? {
             val column = ((offset.x / size.width * 640f - 41f) / 31f).roundToInt()
-            // Pointer coordinates are already physical pixels. The extra input
-            // space below the square keeps the bottom row reachable too.
-            val row = (((offset.y - touchOffsetPx) / size.width * 640f - 41f) / 31f).roundToInt()
+            val row = ((offset.y / size.width * 640f - 41f) / 31f).roundToInt()
             return if (column in 0..18 && row in 0..18) row * 19 + column else null
         }
         awaitEachGesture {
@@ -116,14 +115,12 @@ fun GoBoard(
                     change.consume()
                     current = change
                     released = !change.pressed
-                    if (released && !longPressed && manualInput && preview == null) pointAt(change.position)?.let(state::play)
+                    if (released && !longPressed && manualInput && preview == null) pointAt(change.position)?.takeIf(board::isLegal)?.let(onSelectMove)
                 }
             } finally { touchPoint = null }
         }
     }) {
         val boardSize = maxWidth
-        if (touchOffsetPx > 0) Text(resources.getString(R.string.touch_offset_indicator, touchOffsetPx), fontSize = 10.sp, color = GoColors.Muted,
-            modifier = Modifier.align(Alignment.BottomCenter))
         Box(Modifier.size(boardSize).clip(shape).background(GoColors.Board)
             .border(1.dp, if (preview == null) GoColors.BoardBorder else Color(0xFF779A64), shape)
             .testTag("go-board")
@@ -178,7 +175,7 @@ fun GoBoard(
                     paint.typeface = Typeface.create("sans-serif", Typeface.BOLD)
                     drawContext.canvas.nativeCanvas.drawText((index + 1).toString(), p.x, p.y + 5f, paint)
                 }
-                touchPoint?.let { move ->
+                (touchPoint ?: pendingMove)?.let { move ->
                     val p = BoardPoint.fromIndex(move)!!.boardOffset()
                     drawCircle((if (board.blackToMove) Color(0xFF15201B) else Color.White).copy(alpha = .65f), 14.5f, p)
                     drawCircle(GoColors.Primary, 18f, p, style = Stroke(2f))
@@ -199,12 +196,12 @@ fun GoBoard(
                         role = Role.Button
                         val winRate = candidate.winRateFor(position.nextPlayer)
                         contentDescription = resources.getString(R.string.candidate_accessibility, candidate.label, point.label, resources.getString(if (position.nextPlayer == 1) R.string.black else R.string.white), winRate.oneDecimal(), candidateWinRateLoss(winRate, bestWinRate).oneDecimal())
-                        if (manualInput) onClick(resources.getString(R.string.play_here)) { state.play(candidate.move) }
+                        if (manualInput) onClick(resources.getString(R.string.play_here)) { onSelectMove(candidate.move); true }
                         onLongClick(resources.getString(R.string.preview_variation)) { state.startPreview(Candidate(candidate.label, candidate.pv)); true }
                     },
             )
         }
-        touchPoint?.let { move ->
+        (touchPoint ?: pendingMove)?.let { move ->
             val point = BoardPoint.fromIndex(move)!!
             Box(Modifier.offset(boardSize * ((41 + point.column * 31) / 640f) - 10.dp,
                 boardSize * ((41 + point.row * 31) / 640f) - 10.dp).size(20.dp)

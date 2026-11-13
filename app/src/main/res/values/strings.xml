@@ -246,4 +246,5 @@
     <string name="opponent_first">First candidate rank</string>
     <string name="opponent_last">Last candidate rank</string>
     <string name="opponent_loss">Maximum win rate loss</string>
+    <string name="confirm_move">Confirm move</string>
 </resources>

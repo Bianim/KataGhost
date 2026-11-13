@@ -246,4 +246,5 @@
     <string name="opponent_first">候选起始排名</string>
     <string name="opponent_last">候选结束排名</string>
     <string name="opponent_loss">最大胜率损失</string>
+    <string name="confirm_move">确认落子</string>
 </resources>

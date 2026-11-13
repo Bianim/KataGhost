@@ -90,7 +90,19 @@ fun RecordScreen(
 ) {
     val position = state.position
     val board = remember(position) { BoardSnapshot.from(position) }
-    val offsetHeight = with(LocalDensity.current) { settings.touchOffsetPx.toDp() }
+    var pendingMove by remember(state.selectedId, position, state.preview, manualInput) { mutableStateOf<Int?>(null) }
+    val confirmMove: @Composable () -> Unit = {
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            androidx.compose.material3.Button(
+                enabled = manualInput && state.preview == null && pendingMove?.let(board::isLegal) == true,
+                onClick = {
+                    pendingMove?.takeIf(board::isLegal)?.let(state::play)
+                    pendingMove = null
+                },
+                modifier = Modifier.testTag("confirm-move"),
+            ) { Text(LocalResources.current.getString(R.string.confirm_move)) }
+        }
+    }
     val header: @Composable (Boolean) -> Unit = { compact ->
         RecordHeader(state, settings, engine, onEngineEnabled, onSettings, compact,
             onPass = { state.play(PASS) }, canPass = manualInput && state.preview == null && !board.finished,
@@ -102,12 +114,13 @@ fun RecordScreen(
             // consumes the limited landscape board height.
             BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)).padding(8.dp)) {
                 val rightMinimum = if (maxWidth < 680.dp) 280.dp else 320.dp
-                val boardSize = minOf(maxHeight - offsetHeight, maxWidth - rightMinimum - 12.dp).coerceAtLeast(120.dp)
+                val boardSize = minOf(maxHeight, maxWidth - rightMinimum - 12.dp).coerceAtLeast(120.dp)
                 Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize, boardSize + offsetHeight))
+                    RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove) { pendingMove = it }
                     Column(Modifier.weight(1f).fillMaxSize()) {
                         header(true)
                         Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth())
+                        confirmMove()
                         Transport(state)
                         CurrentAnalysis(state, viewport, engine, settings, onRetry, Modifier.weight(1f).fillMaxWidth())
                         AnalysisTabs(state, insetBottom = false)
@@ -121,9 +134,10 @@ fun RecordScreen(
                     horizontalAlignment = Alignment.CenterHorizontally) {
                     Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth())
                     BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        val boardSize = minOf(maxWidth, (maxHeight - offsetHeight).coerceAtLeast(0.dp))
-                        RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize, boardSize + offsetHeight))
+                        val boardSize = minOf(maxWidth, (maxHeight).coerceAtLeast(0.dp))
+                        RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove) { pendingMove = it }
                     }
+                    confirmMove()
                     Transport(state)
                     CurrentAnalysis(state, viewport, engine, settings, onRetry,
                         Modifier.fillMaxWidth().padding(horizontal = 8.dp).heightIn(max = if (state.tab == 0) 160.dp else 180.dp))
@@ -135,8 +149,8 @@ fun RecordScreen(
 }
 
 @Composable
-private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: EngineUiState, settings: AppPreferences, manualInput: Boolean, modifier: Modifier) {
-    GoBoard(state, board, engine.analysisFor(state.position), settings.coordinates, settings.showCandidateMoves, modifier, settings.touchOffsetPx, manualInput)
+private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: EngineUiState, settings: AppPreferences, manualInput: Boolean, modifier: Modifier, pendingMove: Int?, onSelectMove: (Int) -> Unit) {
+    GoBoard(state, board, engine.analysisFor(state.position), settings.coordinates, settings.showCandidateMoves, modifier, pendingMove, onSelectMove, manualInput)
 }
 
 @Composable
