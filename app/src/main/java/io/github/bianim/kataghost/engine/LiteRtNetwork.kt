@@ -178,9 +178,12 @@ class KataGoSession private constructor(private val runtime: LiteRtNetwork, priv
         NativeKataGo.clearSearchAndCache(handle)
     }
 
-    override fun analyze(visits: Int, cancelled: AtomicBoolean): PositionAnalysis? {
+    override fun analyze(visits: Int, cancelled: AtomicBoolean): PositionAnalysis? =
+        analyzeOpponent(visits, cancelled, 3)
+
+    override fun analyzeOpponent(visits: Int, cancelled: AtomicBoolean, candidateCount: Int): PositionAnalysis? {
         check(handle != 0L)
-        val result = NativeKataGo.analyze(handle, visits, cancelled) ?: return null
+        val result = NativeKataGo.analyze(handle, visits, cancelled, candidateCount) ?: return null
         return PositionAnalysis.parse(position, JSONObject(result), backend)
     }
 

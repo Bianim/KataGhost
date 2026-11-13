@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <jni.h>
 #include <array>
 #include <cmath>
@@ -366,7 +367,7 @@ Java_io_github_bianim_kataghost_engine_NativeKataGo_clearSearchAndCache(JNIEnv* 
   } catch (const std::exception& error) { throwJava(env, error); }
 }
 
-static jstring analyzeSearch(JNIEnv* env, jlong handle, jint visits, jint milliseconds, jobject cancelled) {
+static jstring analyzeSearch(JNIEnv* env, jlong handle, jint visits, jint milliseconds, jobject cancelled, jint candidateCount = 3) {
   try {
     auto& e = engine(handle);
     e.bridge.check();
@@ -405,7 +406,7 @@ static jstring analyzeSearch(JNIEnv* env, jlong handle, jint visits, jint millis
     if (e.search->isLegalStrict(chosen, e.search->getRootPla())) result["bestMove"] = point(chosen);
     std::vector<AnalysisData> choices;
     // Upstream's depth excludes the first candidate move already in the PV.
-    e.search->getAnalysisData(choices, 3, false, 7, false);
+    e.search->getAnalysisData(choices, std::clamp(static_cast<int>(candidateCount), 1, 10), false, 7, false);
     for (const auto& choice : choices) {
       if (result["candidates"].size() == 3) break;
       if (choice.numVisits <= 0 || !e.search->isLegalStrict(choice.move, e.search->getRootPla())) continue;
@@ -432,8 +433,8 @@ static jstring analyzeSearch(JNIEnv* env, jlong handle, jint visits, jint millis
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_io_github_bianim_kataghost_engine_NativeKataGo_analyze(JNIEnv* env, jobject, jlong handle, jint visits, jobject cancelled) {
-  return analyzeSearch(env, handle, visits, 0, cancelled);
+Java_io_github_bianim_kataghost_engine_NativeKataGo_analyze(JNIEnv* env, jobject, jlong handle, jint visits, jobject cancelled, jint candidateCount) {
+  return analyzeSearch(env, handle, visits, 0, cancelled, candidateCount);
 }
 
 extern "C" JNIEXPORT jstring JNICALL

@@ -21,6 +21,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.bianim.kataghost.DiagnosticsScreen
+import io.github.bianim.kataghost.engine.BoardSnapshot
 import io.github.bianim.kataghost.engine.EnginePhase
 import io.github.bianim.kataghost.engine.KataGoViewModel
 import io.github.bianim.kataghost.ui.record.RecordScreen
@@ -52,6 +53,7 @@ fun KataGhostApp() {
     val recordHistory = remember(recordNodes, record.rules, record.komi) {
         recordNodes.map { record.positionFor(it.id) }.distinctBy { it.key }
     }
+    val opponent = settings.effectiveOpponentSearch.takeIf { autoTurn }
     val history = if (autoTurn || record.preview != null) emptyList() else recordHistory
     val snackbar = remember { SnackbarHostState() }
 
@@ -80,18 +82,20 @@ fun KataGhostApp() {
         }
     }
 
-    LaunchedEffect(position, history, settings.engineEnabled, settings.maxVisits, settings.engineConfig, visible, page, foreground) {
+    LaunchedEffect(position, history, settings.engineEnabled, settings.maxVisits, settings.engineConfig, visible, page, foreground, opponent) {
         engine.controller.setTarget(position, settings.engineEnabled, visible, maxVisits = settings.maxVisits, config = settings.engineConfig,
-            history = history, continuous = !autoTurn)
+            history = history, continuous = !autoTurn, opponent = opponent)
     }
-    LaunchedEffect(autoTurn, visible, settings.engineEnabled, settings.maxVisits, settings.engineConfig, position, engineState.phase, engineState.completedAnalysis) {
-        val result = engineState.completedAnalysis
+    LaunchedEffect(autoTurn, visible, settings.engineEnabled, settings.maxVisits, settings.engineConfig, position, engineState.phase, engineState.opponentResult, opponent) {
+        val result = engineState.opponentResult?.takeIf { it.first == opponent }?.second
         if (autoTurn && visible && settings.engineEnabled && engineState.phase == EnginePhase.READY &&
             engineState.config == settings.engineConfig && engineState.maxVisits == settings.maxVisits && result?.position == position && !result.gameFinished) {
             // Give navigation, stop and a newly selected position time to cancel this turn.
             delay(180)
-            if (record.position == position && record.autoPlayArmed && latestSettings.engineEnabled && latestSettings.engineConfig == engineState.config) {
-                val move = result.bestMove
+            if (record.position == position && record.autoPlayArmed && latestSettings.engineEnabled && latestSettings.engineConfig == engineState.config &&
+                latestSettings.automatic(position.nextPlayer) && record.preview == null &&
+                latestSettings.effectiveOpponentSearch == opponent && engine.controller.state.value.opponentResult === engineState.opponentResult) {
+                val move = opponent?.selectMove(result, BoardSnapshot.from(position)::isLegal)
                 if (move == null || !record.play(move)) record.automaticFailed(R.string.auto_move_failed)
             }
         }
@@ -133,10 +137,10 @@ fun KataGhostApp() {
                 onEngineEnabled = {
                     document.updatePreferences(settings.copy(engineEnabled = it))
                     engine.controller.setTarget(record.position, it, visible, maxVisits = settings.maxVisits, config = settings.engineConfig,
-                        history = history, continuous = !autoTurn)
+                        history = history, continuous = !autoTurn, opponent = opponent)
                 },
                 onRetry = { engine.controller.setTarget(record.position, settings.engineEnabled, visible, retry = true, maxVisits = settings.maxVisits,
-                    config = settings.engineConfig, history = history, continuous = !autoTurn) },
+                    config = settings.engineConfig, history = history, continuous = !autoTurn, opponent = opponent) },
                 onSettings = { page = 1 }, onImport = onImport, onExport = onExport,
                 onNewGame = { record.newGame(); viewport.initialized = false },
                 onResumeAutomatic = { record.resumeAutomatic(); document.updatePreferences(settings.copy(engineEnabled = true)) })

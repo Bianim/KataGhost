@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.sp
 import io.github.bianim.kataghost.R
 import io.github.bianim.kataghost.engine.GoRules
 import io.github.bianim.kataghost.engine.MAX_VISITS
+import io.github.bianim.kataghost.engine.OpponentPreset
+import io.github.bianim.kataghost.engine.OpponentSearch
 import io.github.bianim.kataghost.engine.validKomi
 import io.github.bianim.kataghost.ui.theme.GoColors
 
@@ -38,6 +40,7 @@ fun PageHeader(title: String, onBack: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     settings: AppPreferences, rules: GoRules, komi: Float, busy: Boolean,
@@ -57,8 +60,17 @@ fun SettingsScreen(
     val parsedKomi = draftKomi.toFloatOrNull()?.takeIf(::validKomi)
     val parsedVisits = draftVisits.toIntOrNull()?.takeIf { it in 1..MAX_VISITS }
     val parsedOffset = draftOffset.toIntOrNull()?.takeIf { it in 0..300 }
-    val valid = parsedKomi != null && parsedVisits != null && parsedOffset != null
-    val changed = parsedKomi != komi || draftRule != rules || parsedVisits != settings.maxVisits ||
+    val initialOpponent = settings.effectiveOpponentSearch
+    var followsAnalysis by rememberSaveable(settings.opponentSearch) { mutableStateOf(settings.opponentSearch == null) }
+    var visits by rememberSaveable(settings.opponentSearch) { mutableStateOf(initialOpponent.visits.coerceAtMost(4096).toString()) }
+    var first by rememberSaveable(settings.opponentSearch) { mutableStateOf(initialOpponent.firstRank.toString()) }
+    var last by rememberSaveable(settings.opponentSearch) { mutableStateOf(initialOpponent.lastRank.toString()) }
+    var loss by rememberSaveable(settings.opponentSearch) { mutableStateOf(initialOpponent.maxLoss.toString()) }
+    val opponent = if (followsAnalysis) null else runCatching {
+        OpponentSearch(visits.toInt().also { require(it in 1..4096) }, first.toInt(), last.toInt(), loss.toInt())
+    }.getOrNull()
+    val valid = parsedKomi != null && parsedVisits != null && parsedOffset != null && (followsAnalysis || opponent != null)
+    val changed = (!followsAnalysis && opponent == null) || opponent != settings.opponentSearch || parsedKomi != komi || draftRule != rules || parsedVisits != settings.maxVisits ||
         parsedOffset != settings.touchOffsetPx || autoBlack != settings.autoBlack || autoWhite != settings.autoWhite ||
         coordinates != settings.coordinates || candidates != settings.candidates
 
@@ -68,10 +80,40 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             SettingsCard {
                 SectionTitle(resources.getString(R.string.search_automation))
-                IntegerSetting(resources.getString(R.string.search_limit), "visits", draftVisits, 1..MAX_VISITS,
-                    listOf(100, 500, 1000, 5000), "search-limit") { draftVisits = it }
                 ToggleRow(resources.getString(R.string.auto_black), resources.getString(R.string.katago_black), autoBlack, { autoBlack = it }, "auto-black")
                 ToggleRow(resources.getString(R.string.auto_white), resources.getString(R.string.katago_white), autoWhite, { autoWhite = it }, "auto-white")
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    val labels = resources.getStringArray(R.array.opponent_presets)
+                    OpponentPreset.entries.forEachIndexed { index, preset ->
+                        FilterChip(selected = if (followsAnalysis) preset == OpponentPreset.ANALYSIS else opponent != null && opponent == preset.settings,
+                            onClick = {
+                                followsAnalysis = preset.settings == null
+                                preset.settings?.let {
+                                    visits = it.visits.toString()
+                                    first = it.firstRank.toString()
+                                    last = it.lastRank.toString()
+                                    loss = it.maxLoss.toString()
+                                }
+                            }, label = { Text(labels[index]) })
+                    }
+                }
+                IntegerSetting(resources.getString(R.string.opponent_visits), "visits", visits, 1..4096, emptyList(), "opponent-visits") {
+                    followsAnalysis = false
+                    visits = it
+                }
+                IntegerSetting(resources.getString(R.string.opponent_first), "", first, 1..10, emptyList(), "opponent-first") {
+                    followsAnalysis = false
+                    first = it
+                }
+                IntegerSetting(resources.getString(R.string.opponent_last), "", last, 1..10, emptyList(), "opponent-last") {
+                    followsAnalysis = false
+                    last = it
+                }
+                IntegerSetting(resources.getString(R.string.opponent_loss), "%", loss, 0..30, emptyList(), "opponent-loss") {
+                    followsAnalysis = false
+                    loss = it
+                }
+
                 Hint(resources.getString(R.string.automatic_hint))
             }
             SettingsCard {
@@ -105,10 +147,12 @@ fun SettingsScreen(
             SettingsCard {
                 SectionTitle(resources.getString(R.string.engine))
                 SettingsLink(resources.getString(R.string.engines_models), resources.getString(R.string.engines_hint), "open-engines", onEngines)
+                IntegerSetting(resources.getString(R.string.search_limit), "visits", draftVisits, 1..MAX_VISITS,
+                    listOf(100, 500, 1000, 5000), "search-limit") { draftVisits = it }
+                Hint(resources.getString(R.string.visits_hint))
                 HorizontalDivider(color = GoColors.Outline)
                 SettingsLink(resources.getString(R.string.model_validation), resources.getString(R.string.validation_hint), "open-diagnostics", onDiagnostics)
             }
-            Hint(resources.getString(R.string.visits_hint))
         }
         // One persistent action applies the whole draft, including toggles and rules.
         Surface(color = GoColors.Surface, shadowElevation = 8.dp) {
@@ -116,7 +160,7 @@ fun SettingsScreen(
                 if (changed) Hint(resources.getString(if (valid) R.string.settings_pending else R.string.settings_invalid))
                 Button(onClick = {
                     focus.clearFocus()
-                    onApply(settings.copy(maxVisits = checkNotNull(parsedVisits), touchOffsetPx = checkNotNull(parsedOffset),
+                    onApply(settings.copy(opponentSearch = opponent, maxVisits = checkNotNull(parsedVisits), touchOffsetPx = checkNotNull(parsedOffset),
                         autoBlack = autoBlack, autoWhite = autoWhite, coordinates = coordinates, candidates = candidates),
                         draftRule, checkNotNull(parsedKomi))
                 }, enabled = changed && valid && !busy, modifier = Modifier.fillMaxWidth().testTag("apply-settings")) {

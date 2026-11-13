@@ -78,6 +78,16 @@ class SettingsFeatureUiTest {
         play(point)
     }
 
+    @Test fun opponentBudgetPersistsIndependentlyOfAnalysis() {
+        openSettings()
+        ui.onNodeWithTag("opponent-visits-input").performScrollTo().performTextReplacement("64")
+        ui.onNodeWithTag("apply-settings").performClick()
+        ui.activityRule.scenario.recreate()
+        val saved = AppPreferences.load(ui.activity)
+        assertEquals(64, saved.effectiveOpponentSearch.visits)
+        assertEquals(500, saved.maxVisits)
+    }
+
     @Test fun customSearchRulesAndKomiPersistAndDriveActualAnalysis() {
         openSettings()
         ui.onNodeWithTag("search-limit-input").performTextReplacement("0")

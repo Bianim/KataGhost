@@ -140,6 +140,8 @@ interface AnalysisSession : AutoCloseable {
     /** A benchmark starts each case without a tree or neural evaluation cache. */
     fun resetForBenchmark(position: AnalysisPosition)
     fun analyze(visits: Int, cancelled: AtomicBoolean): PositionAnalysis?
+    fun analyzeOpponent(visits: Int, cancelled: AtomicBoolean, candidateCount: Int): PositionAnalysis? =
+        analyze(visits, cancelled)
     /** Keep the current search tree and return a snapshot after a time budget. */
     fun analyzeForTime(milliseconds: Int, cancelled: AtomicBoolean, maxVisits: Int = Int.MAX_VALUE): PositionAnalysis? =
         throw UnsupportedOperationException("Timed analysis is not implemented by this session")

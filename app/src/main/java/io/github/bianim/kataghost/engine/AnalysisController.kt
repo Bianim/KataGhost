@@ -29,6 +29,7 @@ data class EngineUiState(
     val error: String? = null,
     val maxVisits: Int = 500,
     val completedAnalysis: PositionAnalysis? = null,
+    val opponentResult: Pair<OpponentSearch, PositionAnalysis>? = null,
     val liveAnalysis: PositionAnalysis? = null,
     val config: EngineConfig = EngineConfig(),
     val historyCompleted: Int = 0,
@@ -50,7 +51,7 @@ class AnalysisController(
 ) : AutoCloseable {
     private data class Request(val position: AnalysisPosition?, val enabled: Boolean, val visible: Boolean,
                                val maxVisits: Int, val config: EngineConfig, val benchmarkVisits: Int? = null,
-                               val history: List<AnalysisPosition> = emptyList(), val continuous: Boolean = false)
+                               val history: List<AnalysisPosition> = emptyList(), val continuous: Boolean = false, val opponent: OpponentSearch? = null)
     private data class Command(val request: Request, val epoch: Long, val cacheGeneration: Long, val cancelled: AtomicBoolean)
     private val lock = Any()
     private var epoch = 0L
@@ -149,6 +150,16 @@ class AnalysisController(
                         var sessionPosition = request.position
                         activeSession.setPosition(request.position)
                         publish(command) { it.copy(phase = EnginePhase.ANALYZING) }
+                        val opponent = request.opponent
+                        if (opponent != null) {
+                            activeSession.resetForBenchmark(request.position)
+                            val result = activeSession.analyzeOpponent(opponent.visits, command.cancelled, opponent.lastRank)
+                            if (command.cancelled.get()) continue
+                            checkNotNull(result)
+                            check(result.position == request.position)
+                            publish(command) { it.copy(phase = EnginePhase.READY, opponentResult = opponent to result) }
+                            continue
+                        }
                         val timed = activeSession.supportsTimedAnalysis
                         val targets = if (timed) generateSequence { request.maxVisits } else visitTargets(request.maxVisits).asSequence()
                         for (visits in targets) {
@@ -232,11 +243,11 @@ class AnalysisController(
 
     fun setTarget(position: AnalysisPosition?, enabled: Boolean, visible: Boolean = true, retry: Boolean = false,
                   maxVisits: Int = 500, config: EngineConfig = EngineConfig(), history: List<AnalysisPosition> = emptyList(),
-                  continuous: Boolean = false) {
+                  continuous: Boolean = false, opponent: OpponentSearch? = null) {
         require(maxVisits in 1..MAX_VISITS)
         synchronized(lock) {
             enqueue(Request(position, enabled, visible, maxVisits, config,
-                history = history.distinctBy { it.key }, continuous = continuous), retry)
+                history = history.distinctBy { it.key }, continuous = continuous, opponent = opponent), retry)
         }
     }
 
@@ -274,6 +285,7 @@ class AnalysisController(
                 error = null,
                 maxVisits = request.maxVisits,
                 completedAnalysis = null,
+                opponentResult = null,
                 liveAnalysis = null,
                 config = request.config,
                 historyCompleted = 0,

@@ -4,8 +4,8 @@
     <string name="back">返回</string>
     <string name="settings">设置</string>
     <string name="cancel">取消</string>
-    <string name="search_automation">搜索与自动落子</string>
-    <string name="search_limit">搜索预算</string>
+    <string name="search_automation">AI 对手</string>
+    <string name="search_limit">分析搜索预算</string>
     <string name="auto_black">黑棋自动落子</string>
     <string name="auto_white">白棋自动落子</string>
     <string name="katago_black">由 KataGo 执黑</string>
@@ -29,7 +29,7 @@
     <string name="engines_hint">切换模型与测试搜索性能</string>
     <string name="model_validation">模型数值验证</string>
     <string name="validation_hint">对照参考输出验证本机推理</string>
-    <string name="visits_hint">访问数不代表固定棋力。关闭引擎后保留已有分析；新局面仅显示该局面的结果。</string>
+    <string name="visits_hint">用于候选推荐、胜率、目差和复盘。 访问数不代表固定棋力。关闭引擎后保留已有分析；新局面仅显示该局面的结果。</string>
     <string name="apply_settings">应用全部设置</string>
     <string name="settings_saved">全部设置已保存</string>
     <string name="settings_pending">有未保存的更改</string>
@@ -234,4 +234,16 @@
     <string name="model_import_complete">已导入 %1$s。请在上方选择该模型以使用。</string>
     <string name="model_import_failed">模型导入失败。请检查模型包版本、校验和及 CPU 数值参考。</string>
     <string name="model_import_hint">导入包含通用计算图、对应 KataGo 描述文件及数值参考的 .kdmodel ZIP 包。内置模型仍可使用。</string>
+    <string-array name="opponent_presets">
+        <item>沿用分析设置</item>
+        <item>入门</item>
+        <item>简单</item>
+        <item>普通</item>
+        <item>困难</item>
+        <item>专家</item>
+    </string-array>
+    <string name="opponent_visits">对手搜索预算</string>
+    <string name="opponent_first">候选起始排名</string>
+    <string name="opponent_last">候选结束排名</string>
+    <string name="opponent_loss">最大胜率损失</string>
 </resources>

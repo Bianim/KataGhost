@@ -4,8 +4,8 @@
     <string name="back">Back</string>
     <string name="settings">Settings</string>
     <string name="cancel">Cancel</string>
-    <string name="search_automation">Search &amp; automatic moves</string>
-    <string name="search_limit">Search budget</string>
+    <string name="search_automation">AI opponent</string>
+    <string name="search_limit">Analysis search budget</string>
     <string name="auto_black">Play Black automatically</string>
     <string name="auto_white">Play White automatically</string>
     <string name="katago_black">KataGo plays Black</string>
@@ -29,7 +29,7 @@
     <string name="engines_hint">Switch models and measure search speed</string>
     <string name="model_validation">Model validation</string>
     <string name="validation_hint">Compare local inference with reference outputs</string>
-    <string name="visits_hint">Visits are a search budget, not a fixed strength rating. Turning the engine off keeps saved analysis.</string>
+    <string name="visits_hint">Used for candidate moves, win rate, score lead, and game review. Visits are a search budget, not a fixed strength rating. Turning the engine off keeps saved analysis.</string>
     <string name="apply_settings">Apply all changes</string>
     <string name="settings_saved">All changes saved</string>
     <string name="settings_pending">Unsaved changes</string>
@@ -234,4 +234,16 @@
     <string name="model_import_complete">Imported %1$s. Select it above to use it.</string>
     <string name="model_import_failed">Model import failed. Check the package version, checksums and CPU references.</string>
     <string name="model_import_hint">Import a .kdmodel ZIP containing a portable graph, matching KataGo descriptor and numerical references. Bundled models remain available.</string>
+    <string-array name="opponent_presets">
+        <item>Use analysis settings</item>
+        <item>Beginner</item>
+        <item>Easy</item>
+        <item>Normal</item>
+        <item>Hard</item>
+        <item>Expert</item>
+    </string-array>
+    <string name="opponent_visits">Opponent search budget</string>
+    <string name="opponent_first">First candidate rank</string>
+    <string name="opponent_last">Last candidate rank</string>
+    <string name="opponent_loss">Maximum win rate loss</string>
 </resources>

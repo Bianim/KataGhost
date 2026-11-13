@@ -15,7 +15,7 @@ object NativeKataGo {
     external fun destroy(handle: Long)
     external fun setPositionJson(handle: Long, position: String)
     external fun clearSearchAndCache(handle: Long)
-    external fun analyze(handle: Long, visits: Int, cancelled: AtomicBoolean): String?
+    external fun analyze(handle: Long, visits: Int, cancelled: AtomicBoolean, candidateCount: Int): String?
     external fun analyzeForTime(handle: Long, milliseconds: Int, maxVisits: Int, cancelled: AtomicBoolean): String?
     external fun evaluatePosition(handle: Long, position: String, symmetry: Int): String
 }

@@ -1,6 +1,7 @@
 package io.github.bianim.kataghost.ui
 
 import android.content.Context
+import io.github.bianim.kataghost.engine.OpponentSearch
 import androidx.core.content.edit
 import io.github.bianim.kataghost.engine.GoRules
 import io.github.bianim.kataghost.engine.MAX_VISITS
@@ -21,7 +22,9 @@ data class AppPreferences(
     val komi: Float = 7.5f,
     val model: KataGoModel = KataGoModel.B6,
     val backend: EngineBackend = EngineBackend.AUTO,
+    val opponentSearch: OpponentSearch? = null,
 ) {
+    val effectiveOpponentSearch get() = opponentSearch ?: OpponentSearch(maxVisits, 1, 1, 0)
     val engineConfig get() = EngineConfig(model, backend)
     fun automatic(color: Int) = if (color == 1) autoBlack else autoWhite
     val hasAutomaticPlayer get() = autoBlack || autoWhite
@@ -30,6 +33,14 @@ data class AppPreferences(
     fun save(context: Context) = context.getSharedPreferences("board_preferences", Context.MODE_PRIVATE).edit {
         putBoolean("coordinates", coordinates); putBoolean("candidates", candidates)
         putBoolean("engine_enabled", engineEnabled)
+        if (opponentSearch == null) {
+            remove("opponent_visits")
+        } else {
+            putInt("opponent_visits", opponentSearch.visits)
+            putInt("opponent_first", opponentSearch.firstRank)
+            putInt("opponent_last", opponentSearch.lastRank)
+            putInt("opponent_loss", opponentSearch.maxLoss)
+        }
         putInt("max_visits", maxVisits); putInt("touch_offset_px", touchOffsetPx)
         putBoolean("auto_black", autoBlack); putBoolean("auto_white", autoWhite)
         putString("rules", rules.id); putFloat("komi", komi)
@@ -45,7 +56,11 @@ data class AppPreferences(
                 p.getBoolean("auto_black", false), p.getBoolean("auto_white", false),
                 runCatching { GoRules.fromId(p.getString("rules", "chinese")!!) }.getOrDefault(GoRules.CHINESE),
                 p.getFloat("komi", 7.5f).takeIf(::validKomi) ?: 7.5f,
-                KataGoModel.fromId(p.getString("model", null)), EngineBackend.fromId(p.getString("backend", null)))
+                KataGoModel.fromId(p.getString("model", null)), EngineBackend.fromId(p.getString("backend", null)),
+                runCatching {
+                    OpponentSearch(p.getInt("opponent_visits", 0).takeIf { it in 1..4096 } ?: 0,
+                        p.getInt("opponent_first", 1), p.getInt("opponent_last", 1), p.getInt("opponent_loss", 0))
+                }.getOrNull())
         }
     }
 }
