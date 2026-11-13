@@ -156,7 +156,7 @@ private fun RecordHeader(state: RecordUiState, settings: AppPreferences, engine:
         Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(start = if (compact) 6.dp else 20.dp, end = if (compact) 0.dp else 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(buildAnnotatedString {
                 append("Kata")
-                withStyle(SpanStyle(color = GoColors.Primary)) { append("Droid") }
+                withStyle(SpanStyle(color = GoColors.Primary)) { append(resources.getString(R.string.app_name).removePrefix("Kata")) }
             }, fontSize = if (compact) 18.sp else 21.sp, letterSpacing = (-.6).sp,
                 fontWeight = FontWeight.SemiBold, color = GoColors.Ink, modifier = Modifier.weight(1f))
             EngineSwitch(settings.engineEnabled, engine.phase, onEnabled)

@@ -83,11 +83,6 @@ fun AnalysisPanel(state: RecordUiState, engine: EngineUiState, enabled: Boolean,
                 val pass = analysis?.candidates?.firstOrNull { it.move == PASS }
                 if (showCandidates && pass != null) TextButton(onClick = { state.startPreview(Candidate(pass.label, pass.pv)) },
                     modifier = Modifier.testTag("candidate-pass")) { Text(resources.getString(R.string.pass_preview, pass.label), fontSize = 10.sp) }
-                if (enabled && engine.historyAnalyzing) {
-                    Text(resources.getString(R.string.history_progress, engine.historyCompleted, engine.historyTotal),
-                        fontSize = 9.sp, color = GoColors.Muted, modifier = Modifier.fillMaxWidth())
-                }
-
             } else {
                 HorizontalDivider(color = GoColors.Outline)
                 Row(Modifier.fillMaxWidth().heightIn(min = 36.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
