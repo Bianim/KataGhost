@@ -4,10 +4,8 @@ import io.github.bianim.kataghost.R
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -43,17 +41,6 @@ fun AnalysisPanel(state: RecordUiState, engine: EngineUiState, enabled: Boolean,
     val analysis = engine.analysisFor(position)
     val preview = state.preview
     val phase = if (!enabled) EnginePhase.OFF else if (engine.positionKey == position.key) engine.phase else EnginePhase.STARTING
-    val previewCount = if (preview != null) state.previewStep else 0
-    val chartRoute = if (preview == null) state.route else state.path(state.selectedId)
-    val samples = chartRoute.groupBy { it.move }.values.map { sameMove ->
-        // SGF comments and PL nodes can share a move number. Keep the selected
-        // position exact; otherwise use the last node represented by that hand.
-        val node = sameMove.firstOrNull { it.id == state.selectedId } ?: sameMove.last()
-        ChartPoint(node.move, engine.analysisFor(state.positionFor(node.id))?.blackWinRate, node.id)
-    } + (1..previewCount).map { step ->
-        val future = state.basePosition.after(preview!!.moves.take(step))
-        ChartPoint(future.moves.size, engine.analyses[future.key]?.blackWinRate, nodeId = null)
-    }
     val title = when {
         preview != null -> resources.getString(R.string.preview_title, preview.label, BoardPoint.fromIndex(preview.moves.first())?.label ?: resources.getString(R.string.pass_move))
         analysis == null -> resources.getString(R.string.current_not_analyzed)
@@ -91,9 +78,6 @@ fun AnalysisPanel(state: RecordUiState, engine: EngineUiState, enabled: Boolean,
                     Text(if (analysis != null) resources.getString(R.string.analysis_failed_saved) else resources.getString(R.string.analysis_failed_retry), fontSize = 10.sp, color = GoColors.Muted)
                     TextButton(onClick = onRetry, modifier = Modifier.testTag("retry-engine")) { Text(resources.getString(R.string.retry), fontSize = 11.sp) }
                 }
-            }
-            Box(Modifier.weight(1f).fillMaxWidth()) {
-                WinRateChart(samples, position.moves.size, state::seekToNode, Modifier.fillMaxSize())
             }
             if (preview == null) {
                 val pass = analysis?.candidates?.firstOrNull { it.move == PASS }

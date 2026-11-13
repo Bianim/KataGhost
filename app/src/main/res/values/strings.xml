@@ -86,7 +86,7 @@
     <string name="previous_move">Previous move</string>
     <string name="next_move">Next move</string>
     <string name="last_move">Go to the end</string>
-    <string name="tab_chart">Win rate</string>
+    <string name="tab_chart">Analysis</string>
     <string name="tab_tree">Variations</string>
     <string name="clear_board">Clear board</string>
     <string name="clear_board_description">Start a new 19×19 game with the current rules and komi? Export the current game first if you want to keep it.</string>

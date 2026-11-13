@@ -117,16 +117,16 @@ fun RecordScreen(
         } else {
             Column(Modifier.fillMaxSize()) {
                 header(false)
-                BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp).padding(bottom = 10.dp)) {
-                    val fontExtra = ((LocalDensity.current.fontScale - 1f).coerceAtLeast(0f) * 75).dp
-                    val boardSize = minOf(maxWidth, (maxHeight - (if (maxHeight < 550.dp) 280.dp else 310.dp) - fontExtra - offsetHeight).coerceAtLeast(120.dp))
-                    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth())
+                Column(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth())
+                    BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        val boardSize = minOf(maxWidth, (maxHeight - offsetHeight).coerceAtLeast(0.dp))
                         RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize, boardSize + offsetHeight))
-                        Transport(state)
-                        Spacer(Modifier.height(4.dp))
-                        CurrentAnalysis(state, viewport, engine, settings, onRetry, Modifier.weight(1f).fillMaxWidth())
                     }
+                    Transport(state)
+                    CurrentAnalysis(state, viewport, engine, settings, onRetry,
+                        Modifier.fillMaxWidth().padding(horizontal = 8.dp).heightIn(max = if (state.tab == 0) 160.dp else 180.dp))
                 }
                 AnalysisTabs(state)
             }

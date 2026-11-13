@@ -86,7 +86,7 @@
     <string name="previous_move">上一手</string>
     <string name="next_move">下一手</string>
     <string name="last_move">最新一手</string>
-    <string name="tab_chart">胜率走势</string>
+    <string name="tab_chart">分析</string>
     <string name="tab_tree">变化树</string>
     <string name="clear_board">清空棋盘</string>
     <string name="clear_board_description">按当前规则和贴目新建 19 路棋局？如需保留当前棋谱，请先导出。</string>
