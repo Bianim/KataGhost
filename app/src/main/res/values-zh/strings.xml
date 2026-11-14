@@ -16,14 +16,12 @@
     <string name="points">目</string>
     <string name="komi_hint">有效范围 -400 到 400；正数表示白棋贴目</string>
     <string name="rules_hint">应用到当前棋谱和新建棋局，更改后按新规则重新分析。</string>
-    <string name="board_touch">棋盘与触控</string>
+    <string name="board_touch">棋盘</string>
     <string name="coordinates">棋盘坐标</string>
     <string name="coordinates_hint">显示字母与路数</string>
     <string name="candidates">候选变化</string>
     <string name="candidates_hint">显示 A / B / C，长按预览</string>
     <string name="candidate_color_hint">按当前行棋方相对最佳选点的胜率损失着色：接近最佳为绿，损失越大越偏黄、红；字母保留搜索推荐顺序。</string>
-    <string name="touch_offset">落点向手指上方偏移</string>
-    <string name="touch_hint">按实际屏幕像素偏移。按住拖动预览落点，松手落子；棋盘下方留有触控区，可落在最底一行。</string>
     <string name="engine">引擎</string>
     <string name="engines_models">引擎与模型</string>
     <string name="engines_hint">切换模型与测试搜索性能</string>
@@ -222,7 +220,6 @@
     <string name="conv_report">%1$s：输出校验通过\n初始化 %2$.2f ms\n调用中位数 %3$.3f ms，P95 %4$.3f ms\n最大绝对误差 %5$.6f</string>
     <string name="model_report">%1$s · %2$s\n初始化 %3$.1f ms；推理中位数 %4$.2f ms，P95 %5$.2f ms\n</string>
     <string name="model_case_report">%1$s：五个输出头通过\n最大原始误差 %2$.5f；策略 KL %3$.6f\n胜率差 %4$.3f 个百分点；目数差 %5$.3f 目；归属 MAE %6$.5f\n</string>
-    <string name="touch_offset_indicator">触点上移 %1$d px</string>
     <string name="player_name_rank">%1$s %2$s</string>
     <string name="player_mode_captures">%1$s · 提子 %2$d</string>
     <string name="npu_runtime_prepare_failed">无法准备 %1$s NPU 运行时。</string>
@@ -247,4 +244,8 @@
     <string name="opponent_last">候选结束排名</string>
     <string name="opponent_loss">最大胜率损失</string>
     <string name="confirm_move">确认落子</string>
+    <string name="board_pass">虚招</string>
+    <string name="territory">形势</string>
+    <string name="territory_back">返回</string>
+    <string name="territory_estimate">地盘归属估计</string>
 </resources>

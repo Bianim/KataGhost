@@ -65,9 +65,8 @@ class SettingsFeatureUiTest {
     private fun waitForReady() = ui.waitUntil(30000) { engine.controller.state.value.let { it.completedAnalysis?.position == document.record.position && it.phase in listOf(EnginePhase.READY, EnginePhase.ANALYZING) } }
     private fun play(coordinate: String) {
         val point = BoardPoint.parse(coordinate)
-        val offset = document.preferences.touchOffsetPx
         ui.onNodeWithTag("board-input").performTouchInput {
-            click(Offset(width * (41 + point.column * 31) / 640f, width * (41 + point.row * 31) / 640f + offset))
+            click(Offset(width * (41 + point.column * 31) / 640f, width * (41 + point.row * 31) / 640f))
         }
     }
     private fun playLegal() {
@@ -110,45 +109,6 @@ class SettingsFeatureUiTest {
         assertEquals(333, engine.controller.state.value.completedAnalysis?.visits)
         assertEquals(-2.25f, engine.controller.state.value.completedAnalysis!!.position.komi, 0f)
         assertEquals(GoRules.JAPANESE, engine.controller.state.value.completedAnalysis!!.position.rules)
-    }
-
-    @Test fun offsetsUsePhysicalPixelsAndSupportDraggingBottomRowAndCancellation() {
-        for (offset in listOf(0, 60, 120, 150, 180)) {
-            openSettings()
-            ui.onNodeWithTag("touch-offset-$offset").performScrollTo().performClick()
-            if (offset != document.preferences.touchOffsetPx) ui.onNodeWithTag("apply-settings").performClick()
-            ui.waitUntil(5000) { !document.busy && document.preferences.touchOffsetPx == offset }
-            ui.onNodeWithContentDescription("返回").performClick()
-            ui.runOnIdle { document.record.newGame() }
-            val square = ui.onNodeWithTag("go-board").fetchSemanticsNode().boundsInRoot
-            val input = ui.onNodeWithTag("board-input").fetchSemanticsNode().boundsInRoot
-            assertEquals(offset.toFloat(), input.height - square.height, 1f)
-            play("D16")
-            assertEquals(BoardPoint.parse("D16").index, document.record.position.moves.single())
-            ui.onNodeWithTag("board-input").performTouchInput {
-                down(Offset(width * (41 + 6 * 31) / 640f, width * (41 + 6 * 31) / 640f + offset))
-                moveTo(Offset(width * 599 / 640f, width * 599 / 640f + offset), delayMillis = 100)
-            }
-            ui.onNodeWithTag("placement-preview").assertContentDescriptionEquals("松手落子：T1")
-            assertEquals(1, count())
-            val ghost = ui.onNodeWithTag("placement-preview").fetchSemanticsNode().boundsInRoot
-            assertEquals(square.top + square.width * 599 / 640f, ghost.center.y, 2f)
-            ui.onNodeWithTag("board-input").performTouchInput { up() }
-            assertEquals(BoardPoint.parse("T1").index, document.record.position.moves.last())
-            assertEquals(2, count())
-            ui.onNodeWithTag("board-input").performTouchInput {
-                down(center); moveTo(center + Offset(30f, 0f)); cancel()
-            }
-            ui.onNodeWithTag("placement-preview").assertDoesNotExist()
-            assertEquals(2, count())
-            ui.onNodeWithTag("board-input").performTouchInput {
-                down(center); moveTo(Offset(-100f, -100f)); up()
-            }
-            assertEquals(2, count())
-        }
-        ui.activityRule.scenario.recreate()
-        assertEquals(180, AppPreferences.load(ui.activity).touchOffsetPx)
-        assertEquals(2, count())
     }
 
     @Test fun landscapeUsesAvailableHeightAndRetainsTheGame() {

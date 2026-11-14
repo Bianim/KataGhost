@@ -64,6 +64,7 @@ fun GoBoard(
     pendingMove: Int? = null,
     onSelectMove: (Int) -> Unit = {},
     manualInput: Boolean = true,
+    ownership: List<Float>? = null,
 ) {
     val resources = LocalResources.current
     val position = state.position
@@ -174,6 +175,13 @@ fun GoBoard(
                     paint.textSize = 14f
                     paint.typeface = Typeface.create("sans-serif", Typeface.BOLD)
                     drawContext.canvas.nativeCanvas.drawText((index + 1).toString(), p.x, p.y + 5f, paint)
+                }
+                ownership?.forEachIndexed { index, value ->
+                    if (kotlin.math.abs(value) >= 0.35f) {
+                        val center = Offset(41f + index % 19 * 31f, 41f + index / 19 * 31f)
+                        val color = if (value > 0f) Color.White else Color.Black
+                        drawRect(color.copy(alpha = 0.85f), center - Offset(6f, 6f), androidx.compose.ui.geometry.Size(12f, 12f))
+                    }
                 }
                 (touchPoint ?: pendingMove)?.let { move ->
                     val p = BoardPoint.fromIndex(move)!!.boardOffset()

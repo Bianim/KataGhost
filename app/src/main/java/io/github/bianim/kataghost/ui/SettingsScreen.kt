@@ -52,14 +52,12 @@ fun SettingsScreen(
     var draftRule by rememberSaveable(rules) { mutableStateOf(rules) }
     var draftKomi by rememberSaveable(komi) { mutableStateOf(komi.toString()) }
     var draftVisits by rememberSaveable(settings.maxVisits) { mutableStateOf(settings.maxVisits.toString()) }
-    var draftOffset by rememberSaveable(settings.touchOffsetPx) { mutableStateOf(settings.touchOffsetPx.toString()) }
     var autoBlack by rememberSaveable(settings.autoBlack) { mutableStateOf(settings.autoBlack) }
     var autoWhite by rememberSaveable(settings.autoWhite) { mutableStateOf(settings.autoWhite) }
     var coordinates by rememberSaveable(settings.coordinates) { mutableStateOf(settings.coordinates) }
     var candidates by rememberSaveable(settings.candidates) { mutableStateOf(settings.candidates) }
     val parsedKomi = draftKomi.toFloatOrNull()?.takeIf(::validKomi)
     val parsedVisits = draftVisits.toIntOrNull()?.takeIf { it in 1..MAX_VISITS }
-    val parsedOffset = draftOffset.toIntOrNull()?.takeIf { it in 0..300 }
     val initialOpponent = settings.effectiveOpponentSearch
     var followsAnalysis by rememberSaveable(settings.opponentSearch) { mutableStateOf(settings.opponentSearch == null) }
     var visits by rememberSaveable(settings.opponentSearch) { mutableStateOf(initialOpponent.visits.coerceAtMost(4096).toString()) }
@@ -69,9 +67,9 @@ fun SettingsScreen(
     val opponent = if (followsAnalysis) null else runCatching {
         OpponentSearch(visits.toInt().also { require(it in 1..4096) }, first.toInt(), last.toInt(), loss.toInt())
     }.getOrNull()
-    val valid = parsedKomi != null && parsedVisits != null && parsedOffset != null && (followsAnalysis || opponent != null)
+    val valid = parsedKomi != null && parsedVisits != null && (followsAnalysis || opponent != null)
     val changed = (!followsAnalysis && opponent == null) || opponent != settings.opponentSearch || parsedKomi != komi || draftRule != rules || parsedVisits != settings.maxVisits ||
-        parsedOffset != settings.touchOffsetPx || autoBlack != settings.autoBlack || autoWhite != settings.autoWhite ||
+        autoBlack != settings.autoBlack || autoWhite != settings.autoWhite ||
         coordinates != settings.coordinates || candidates != settings.candidates
 
     Column(Modifier.fillMaxSize().imePadding().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)).testTag("settings-screen")) {
@@ -140,9 +138,6 @@ fun SettingsScreen(
                 ToggleRow(resources.getString(R.string.candidates), resources.getString(R.string.candidates_hint), candidates, { candidates = it }, "setting-candidates")
                 Hint(resources.getString(R.string.candidate_color_hint))
                 HorizontalDivider(color = GoColors.Outline)
-                IntegerSetting(resources.getString(R.string.touch_offset), "px", draftOffset, 0..300,
-                    listOf(0, 60, 120, 150, 180), "touch-offset") { draftOffset = it }
-                Hint(resources.getString(R.string.touch_hint))
             }
             SettingsCard {
                 SectionTitle(resources.getString(R.string.engine))
@@ -160,7 +155,7 @@ fun SettingsScreen(
                 if (changed) Hint(resources.getString(if (valid) R.string.settings_pending else R.string.settings_invalid))
                 Button(onClick = {
                     focus.clearFocus()
-                    onApply(settings.copy(opponentSearch = opponent, maxVisits = checkNotNull(parsedVisits), touchOffsetPx = checkNotNull(parsedOffset),
+                    onApply(settings.copy(opponentSearch = opponent, maxVisits = checkNotNull(parsedVisits),
                         autoBlack = autoBlack, autoWhite = autoWhite, coordinates = coordinates, candidates = candidates),
                         draftRule, checkNotNull(parsedKomi))
                 }, enabled = changed && valid && !busy, modifier = Modifier.fillMaxWidth().testTag("apply-settings")) {

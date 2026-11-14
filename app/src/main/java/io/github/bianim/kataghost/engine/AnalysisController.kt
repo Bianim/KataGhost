@@ -29,6 +29,7 @@ data class EngineUiState(
     val error: String? = null,
     val maxVisits: Int = 500,
     val completedAnalysis: PositionAnalysis? = null,
+    val ownership: List<Float>? = null,
     val opponentResult: Pair<OpponentSearch, PositionAnalysis>? = null,
     val liveAnalysis: PositionAnalysis? = null,
     val config: EngineConfig = EngineConfig(),
@@ -51,7 +52,7 @@ class AnalysisController(
 ) : AutoCloseable {
     private data class Request(val position: AnalysisPosition?, val enabled: Boolean, val visible: Boolean,
                                val maxVisits: Int, val config: EngineConfig, val benchmarkVisits: Int? = null,
-                               val history: List<AnalysisPosition> = emptyList(), val continuous: Boolean = false, val opponent: OpponentSearch? = null)
+                               val history: List<AnalysisPosition> = emptyList(), val continuous: Boolean = false, val opponent: OpponentSearch? = null, val territory: Boolean = false)
     private data class Command(val request: Request, val epoch: Long, val cacheGeneration: Long, val cancelled: AtomicBoolean)
     private val lock = Any()
     private var epoch = 0L
@@ -150,6 +151,13 @@ class AnalysisController(
                         var sessionPosition = request.position
                         activeSession.setPosition(request.position)
                         publish(command) { it.copy(phase = EnginePhase.ANALYZING) }
+                        if (request.territory) {
+                            val ownership = (activeSession as KataGoSession).evaluate(request.position).getJSONArray("whiteOwnership")
+                            check(ownership.length() == 361)
+                            publish(command) { it.copy(phase = EnginePhase.READY,
+                                ownership = List(361) { ownership.getDouble(it).toFloat() }) }
+                            continue
+                        }
                         val opponent = request.opponent
                         if (opponent != null) {
                             activeSession.resetForBenchmark(request.position)
@@ -243,11 +251,11 @@ class AnalysisController(
 
     fun setTarget(position: AnalysisPosition?, enabled: Boolean, visible: Boolean = true, retry: Boolean = false,
                   maxVisits: Int = 500, config: EngineConfig = EngineConfig(), history: List<AnalysisPosition> = emptyList(),
-                  continuous: Boolean = false, opponent: OpponentSearch? = null) {
+                  continuous: Boolean = false, opponent: OpponentSearch? = null, territory: Boolean = false) {
         require(maxVisits in 1..MAX_VISITS)
         synchronized(lock) {
             enqueue(Request(position, enabled, visible, maxVisits, config,
-                history = history.distinctBy { it.key }, continuous = continuous, opponent = opponent), retry)
+                history = history.distinctBy { it.key }, continuous = continuous, opponent = opponent, territory = territory), retry)
         }
     }
 
@@ -285,6 +293,7 @@ class AnalysisController(
                 error = null,
                 maxVisits = request.maxVisits,
                 completedAnalysis = null,
+                ownership = null,
                 opponentResult = null,
                 liveAnalysis = null,
                 config = request.config,

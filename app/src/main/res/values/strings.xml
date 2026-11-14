@@ -16,14 +16,12 @@
     <string name="points">points</string>
     <string name="komi_hint">−400 to 400; positive komi is awarded to White</string>
     <string name="rules_hint">Applied to the current game and future games. Analysis is recalculated using the new rules.</string>
-    <string name="board_touch">Board &amp; touch</string>
+    <string name="board_touch">Board</string>
     <string name="coordinates">Board coordinates</string>
     <string name="coordinates_hint">Show column letters and row numbers</string>
     <string name="candidates">Candidate moves</string>
     <string name="candidates_hint">Show A / B / C; hold to preview</string>
     <string name="candidate_color_hint">Moves close to the best win rate are green. Larger losses turn yellow, then red. Colors use the player to move; letters keep the search ranking.</string>
-    <string name="touch_offset">Place above your finger</string>
-    <string name="touch_hint">Offset in physical screen pixels. Drag to preview, release to play. The touch area extends below the board so the last row stays reachable.</string>
     <string name="engine">Engine</string>
     <string name="engines_models">Engines &amp; models</string>
     <string name="engines_hint">Switch models and measure search speed</string>
@@ -222,7 +220,6 @@
     <string name="conv_report">%1$s: output validated\nInitialization %2$.2f ms\nMedian call %3$.3f ms, P95 %4$.3f ms\nMaximum absolute error %5$.6f</string>
     <string name="model_report">%1$s · %2$s\nInitialization %3$.1f ms; inference median %4$.2f ms, P95 %5$.2f ms\n</string>
     <string name="model_case_report">%1$s: five output heads passed\nMax raw error %2$.5f; policy KL %3$.6f\nWin-rate error %4$.3f pp; score error %5$.3f points; ownership MAE %6$.5f\n</string>
-    <string name="touch_offset_indicator">Touch offset: %1$d px up</string>
     <string name="player_name_rank">%1$s %2$s</string>
     <string name="player_mode_captures">%1$s · Captured %2$d</string>
     <string name="npu_runtime_prepare_failed">Could not prepare the %1$s NPU runtime.</string>
@@ -247,4 +244,8 @@
     <string name="opponent_last">Last candidate rank</string>
     <string name="opponent_loss">Maximum win rate loss</string>
     <string name="confirm_move">Confirm move</string>
+    <string name="board_pass">Pass</string>
+    <string name="territory">Territory</string>
+    <string name="territory_back">Back</string>
+    <string name="territory_estimate">Estimated territory</string>
 </resources>

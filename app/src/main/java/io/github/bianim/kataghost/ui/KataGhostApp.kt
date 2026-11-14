@@ -48,7 +48,9 @@ fun KataGhostApp() {
     val latestSettings by rememberUpdatedState(settings)
     val position = record.position
     val visible = foreground && page == 0 && !document.busy && !pickerOpen && document.importChoices.isEmpty()
-    val autoTurn = settings.hasAutomaticPlayer && settings.automatic(position.nextPlayer) && record.autoPlayArmed && record.preview == null
+    var territory by remember { mutableStateOf(false) }
+    BackHandler(territory) { territory = false }
+    val autoTurn = !territory && settings.hasAutomaticPlayer && settings.automatic(position.nextPlayer) && record.autoPlayArmed && record.preview == null
     val recordNodes = record.nodes
     val recordHistory = remember(recordNodes, record.rules, record.komi) {
         recordNodes.map { record.positionFor(it.id) }.distinctBy { it.key }
@@ -82,9 +84,9 @@ fun KataGhostApp() {
         }
     }
 
-    LaunchedEffect(position, history, settings.engineEnabled, settings.maxVisits, settings.engineConfig, visible, page, foreground, opponent) {
-        engine.controller.setTarget(position, settings.engineEnabled, visible, maxVisits = settings.maxVisits, config = settings.engineConfig,
-            history = history, continuous = !autoTurn, opponent = opponent)
+    LaunchedEffect(position, history, settings.engineEnabled, settings.maxVisits, settings.engineConfig, visible, page, foreground, opponent, territory) {
+        engine.controller.setTarget(position, settings.engineEnabled || territory, visible, maxVisits = settings.maxVisits, config = settings.engineConfig,
+            history = history, continuous = !autoTurn, opponent = opponent, territory = territory)
     }
     LaunchedEffect(autoTurn, visible, settings.engineEnabled, settings.maxVisits, settings.engineConfig, position, engineState.phase, engineState.opponentResult, opponent) {
         val result = engineState.opponentResult?.takeIf { it.first == opponent }?.second
@@ -92,7 +94,7 @@ fun KataGhostApp() {
             engineState.config == settings.engineConfig && engineState.maxVisits == settings.maxVisits && result?.position == position && !result.gameFinished) {
             // Give navigation, stop and a newly selected position time to cancel this turn.
             delay(180)
-            if (record.position == position && record.autoPlayArmed && latestSettings.engineEnabled && latestSettings.engineConfig == engineState.config &&
+            if (!territory && record.position == position && record.autoPlayArmed && latestSettings.engineEnabled && latestSettings.engineConfig == engineState.config &&
                 latestSettings.automatic(position.nextPlayer) && record.preview == null &&
                 latestSettings.effectiveOpponentSearch == opponent && engine.controller.state.value.opponentResult === engineState.opponentResult) {
                 val move = opponent?.selectMove(result, BoardSnapshot.from(position)::isLegal)
@@ -133,6 +135,8 @@ fun KataGhostApp() {
                 }, onStart = { engine.controller.startBenchmark(settings.engineConfig, it) }, onCancel = engine.controller::cancelBenchmark,
                 onDiagnostics = { diagnosticsReturnPage = 3; page = 2 }, onBack = ::goBack)
             else -> RecordScreen(record, viewport, settings, engineState,
+                territory = territory, onTerritory = { territory = !territory },
+                onCandidates = { document.updatePreferences(settings.copy(candidates = it)) },
                 manualInput = !(autoTurn && settings.engineEnabled) && !document.busy,
                 onEngineEnabled = {
                     document.updatePreferences(settings.copy(engineEnabled = it))

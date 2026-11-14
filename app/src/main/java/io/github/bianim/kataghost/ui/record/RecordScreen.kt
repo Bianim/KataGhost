@@ -41,7 +41,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.CornerRadius
@@ -87,20 +90,36 @@ fun RecordScreen(
     onResumeAutomatic: () -> Unit,
     onNewGame: () -> Unit,
     modifier: Modifier = Modifier,
+    territory: Boolean = false,
+    onTerritory: () -> Unit = {},
+    onCandidates: (Boolean) -> Unit = {},
 ) {
     val position = state.position
     val board = remember(position) { BoardSnapshot.from(position) }
     var pendingMove by remember(state.selectedId, position, state.preview, manualInput) { mutableStateOf<Int?>(null) }
     val confirmMove: @Composable () -> Unit = {
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                TextButton(
+                    enabled = !territory && manualInput && state.preview == null && board.isLegal(PASS),
+                    onClick = { if (state.play(PASS)) pendingMove = null },
+                    modifier = Modifier.testTag("board-pass"),
+                ) { Text(LocalResources.current.getString(R.string.board_pass)) }
+            }
             androidx.compose.material3.Button(
-                enabled = manualInput && state.preview == null && pendingMove?.let(board::isLegal) == true,
+                enabled = !territory && manualInput && state.preview == null && pendingMove?.let(board::isLegal) == true,
                 onClick = {
                     pendingMove?.takeIf(board::isLegal)?.let(state::play)
                     pendingMove = null
                 },
                 modifier = Modifier.testTag("confirm-move"),
             ) { Text(LocalResources.current.getString(R.string.confirm_move)) }
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                TextButton(onClick = onTerritory, enabled = territory || state.preview == null,
+                    modifier = Modifier.testTag(if (territory) "territory-back" else "territory")) {
+                    Text(LocalResources.current.getString(if (territory) R.string.territory_back else R.string.territory))
+                }
+            }
         }
     }
     val header: @Composable (Boolean) -> Unit = { compact ->
@@ -116,41 +135,41 @@ fun RecordScreen(
                 val rightMinimum = if (maxWidth < 680.dp) 280.dp else 320.dp
                 val boardSize = minOf(maxHeight, maxWidth - rightMinimum - 12.dp).coerceAtLeast(120.dp)
                 Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove) { pendingMove = it }
+                    RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory) { pendingMove = it }
                     Column(Modifier.weight(1f).fillMaxSize()) {
-                        header(true)
-                        Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth())
+                        TerritoryLocked(territory) { header(true) }
+                        TerritoryLocked(territory, title = true) { Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth()) }
                         confirmMove()
-                        Transport(state)
-                        CurrentAnalysis(state, viewport, engine, settings, onRetry, Modifier.weight(1f).fillMaxWidth())
-                        AnalysisTabs(state, insetBottom = false)
+                        TerritoryLocked(territory) { Transport(state, settings.candidates, onCandidates) }
+                        TerritoryLocked(territory, modifier = Modifier.weight(1f).fillMaxWidth()) { CurrentAnalysis(state, viewport, engine, settings, onRetry, Modifier.fillMaxSize()) }
+                        TerritoryLocked(territory) { AnalysisTabs(state, insetBottom = false) }
                     }
                 }
             }
         } else {
             Column(Modifier.fillMaxSize()) {
-                header(false)
+                TerritoryLocked(territory) { header(false) }
                 Column(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally) {
-                    Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth())
+                    TerritoryLocked(territory, title = true) { Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth()) }
                     BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                         val boardSize = minOf(maxWidth, (maxHeight).coerceAtLeast(0.dp))
-                        RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove) { pendingMove = it }
+                        RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory) { pendingMove = it }
                     }
                     confirmMove()
-                    Transport(state)
-                    CurrentAnalysis(state, viewport, engine, settings, onRetry,
-                        Modifier.fillMaxWidth().padding(horizontal = 8.dp).heightIn(max = if (state.tab == 0) 160.dp else 180.dp))
+                    TerritoryLocked(territory) { Transport(state, settings.candidates, onCandidates) }
+                    TerritoryLocked(territory) { CurrentAnalysis(state, viewport, engine, settings, onRetry,
+                        Modifier.fillMaxWidth().padding(horizontal = 8.dp).heightIn(max = if (state.tab == 0) 160.dp else 180.dp)) }
                 }
-                AnalysisTabs(state)
+                TerritoryLocked(territory) { AnalysisTabs(state) }
             }
         }
     }
 }
 
 @Composable
-private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: EngineUiState, settings: AppPreferences, manualInput: Boolean, modifier: Modifier, pendingMove: Int?, onSelectMove: (Int) -> Unit) {
-    GoBoard(state, board, engine.analysisFor(state.position), settings.coordinates, settings.showCandidateMoves, modifier, pendingMove, onSelectMove, manualInput)
+private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: EngineUiState, settings: AppPreferences, manualInput: Boolean, modifier: Modifier, pendingMove: Int?, territory: Boolean, onSelectMove: (Int) -> Unit) {
+    GoBoard(state, board, engine.analysisFor(state.position), settings.coordinates, settings.showCandidateMoves && !territory, modifier, pendingMove.takeUnless { territory }, onSelectMove, manualInput && !territory, engine.ownership.takeIf { territory })
 }
 
 @Composable
@@ -297,13 +316,17 @@ private fun PlayerDetails(state: RecordUiState, black: Boolean, automatic: Boole
 }
 
 @Composable
-private fun Transport(state: RecordUiState) {
+private fun Transport(state: RecordUiState, candidates: Boolean, onCandidates: (Boolean) -> Unit) {
     val resources = LocalResources.current
     Row(Modifier.fillMaxWidth().height(48.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Row(Modifier.weight(1f).padding(start = 5.dp).testTag("move-indicator"), verticalAlignment = Alignment.CenterVertically) {
             Text(state.node.move.toString(), fontSize = 17.sp, fontWeight = FontWeight.Medium, color = GoColors.Ink)
             Text(if (state.preview != null) resources.getString(R.string.preview_move_suffix, state.previewStep) else resources.getString(R.string.move_location_suffix, state.node.moveLabel(resources)), fontSize = 11.sp, color = GoColors.Muted, maxLines = 1)
         }
+        androidx.compose.material3.Switch(checked = candidates, onCheckedChange = onCandidates,
+            modifier = Modifier.testTag("quick-candidates").semantics {
+                contentDescription = resources.getString(R.string.candidates)
+            })
         TransportButton(GoSymbol.First, resources.getString(R.string.first_move), !state.atStart, state::first)
         TransportButton(GoSymbol.Previous, resources.getString(R.string.previous_move), !state.atStart, state::previous)
         TransportButton(GoSymbol.Next, resources.getString(R.string.next_move), !state.atEnd, state::next)
@@ -334,5 +357,23 @@ private fun AnalysisTabs(state: RecordUiState, insetBottom: Boolean = true) {
                 Text(label, fontSize = 13.sp, fontWeight = if (state.tab == index) FontWeight.SemiBold else FontWeight.Normal, color = if (state.tab == index) GoColors.Primary else GoColors.Muted)
             }
         }
+    }
+}
+
+@Composable
+private fun TerritoryLocked(active: Boolean, modifier: Modifier = Modifier, title: Boolean = false, content: @Composable () -> Unit) {
+    if (!active) {
+        Box(modifier) { content() }
+        return
+    }
+    Box(modifier.clearAndSetSemantics {}) {
+        Box(Modifier.alpha(0f)) { content() }
+        Box(Modifier.matchParentSize().pointerInput(Unit) {
+            awaitPointerEventScope {
+                while (true) awaitPointerEvent().changes.forEach { it.consume() }
+            }
+        })
+        if (title) Text(LocalResources.current.getString(R.string.territory_estimate),
+            modifier = Modifier.align(Alignment.Center))
     }
 }

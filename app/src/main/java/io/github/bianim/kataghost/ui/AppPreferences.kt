@@ -15,7 +15,6 @@ data class AppPreferences(
     val candidates: Boolean = true,
     val engineEnabled: Boolean = true,
     val maxVisits: Int = 500,
-    val touchOffsetPx: Int = 0,
     val autoBlack: Boolean = false,
     val autoWhite: Boolean = false,
     val rules: GoRules = GoRules.CHINESE,
@@ -41,7 +40,7 @@ data class AppPreferences(
             putInt("opponent_last", opponentSearch.lastRank)
             putInt("opponent_loss", opponentSearch.maxLoss)
         }
-        putInt("max_visits", maxVisits); putInt("touch_offset_px", touchOffsetPx)
+        putInt("max_visits", maxVisits)
         putBoolean("auto_black", autoBlack); putBoolean("auto_white", autoWhite)
         putString("rules", rules.id); putFloat("komi", komi)
         putString("model", model.id); putString("backend", backend.name)
@@ -52,7 +51,7 @@ data class AppPreferences(
             val p = context.getSharedPreferences("board_preferences", Context.MODE_PRIVATE)
             return AppPreferences(p.getBoolean("coordinates", true), p.getBoolean("candidates", true),
                 p.getBoolean("engine_enabled", true),
-                p.getInt("max_visits", 500).coerceIn(1, MAX_VISITS), p.getInt("touch_offset_px", 0).coerceIn(0, 300),
+                p.getInt("max_visits", 500).coerceIn(1, MAX_VISITS),
                 p.getBoolean("auto_black", false), p.getBoolean("auto_white", false),
                 runCatching { GoRules.fromId(p.getString("rules", "chinese")!!) }.getOrDefault(GoRules.CHINESE),
                 p.getFloat("komi", 7.5f).takeIf(::validKomi) ?: 7.5f,

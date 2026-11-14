@@ -74,17 +74,14 @@ class EnglishUiTest {
         ui.onNodeWithTag("search-limit-input").performScrollTo().performTextReplacement("123")
         ui.onNodeWithTag("rule-korean").performScrollTo().performClick()
         ui.onNodeWithTag("komi-input").performTextReplacement("-3.5")
-        ui.onNodeWithTag("touch-offset-60").performScrollTo().performClick()
         ui.activityRule.scenario.recreate() // Draft survives rotation/recreation without being committed.
         assertEquals(500, document.preferences.maxVisits)
         assertEquals(GoRules.CHINESE, document.record.rules)
-        assertEquals(0, document.preferences.touchOffsetPx)
         ui.onNodeWithTag("apply-settings").performClick()
         ui.waitUntil(5000) { !document.busy && document.preferences.maxVisits == 123 }
         assertTrue(document.preferences.autoBlack)
         assertEquals(GoRules.KOREAN, document.record.rules)
         assertEquals(-3.5f, document.record.komi, 0f)
-        assertEquals(60, document.preferences.touchOffsetPx)
         ui.onNodeWithTag("apply-settings").assertIsNotEnabled()
         ui.onNodeWithTag("open-engines").performScrollTo().performClick()
         ui.onNodeWithText("Engines & models").assertIsDisplayed()
