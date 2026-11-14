@@ -35,7 +35,7 @@ import kotlin.math.abs
 internal fun Float.oneDecimal() = String.format(Locale.ROOT, "%.1f", this)
 
 @Composable
-fun AnalysisPanel(state: RecordUiState, engine: EngineUiState, enabled: Boolean, onRetry: () -> Unit, modifier: Modifier = Modifier, showCandidates: Boolean = true) {
+fun AnalysisPanel(state: RecordUiState, engine: EngineUiState, enabled: Boolean, onRetry: () -> Unit, modifier: Modifier = Modifier, showCandidates: Boolean = true, winRatePlayer: Int = 1) {
     val resources = LocalResources.current
     val position = state.position
     val analysis = engine.analysisFor(position)
@@ -70,7 +70,7 @@ fun AnalysisPanel(state: RecordUiState, engine: EngineUiState, enabled: Boolean,
                     modifier = Modifier.testTag("analysis-visits"))
             }
             Row(Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Metric(resources.getString(R.string.black_win_rate), analysis?.blackWinRate?.oneDecimal() ?: "—", "%", false, "win-rate")
+                Metric(resources.getString(if (winRatePlayer == 2) R.string.white_win_rate else R.string.black_win_rate), analysis?.let { if (winRatePlayer == 2) 100f - it.blackWinRate else it.blackWinRate }?.oneDecimal() ?: "—", "%", false, "win-rate")
                 Metric(if ((analysis?.blackLead ?: 0f) >= 0) resources.getString(R.string.black_lead) else resources.getString(R.string.white_lead), analysis?.blackLead?.let { abs(it).oneDecimal() } ?: "—", resources.getString(R.string.points), true, "score-lead")
             }
             if (phase == EnginePhase.ERROR) {

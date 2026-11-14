@@ -92,6 +92,9 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
     }
 
     /** All manual and automatic moves pass through the same official legality check. */
+    internal var lastPlacement by mutableStateOf<Any?>(null)
+        private set
+
     internal var onStonePlaced: (() -> Unit)? = null
 
     fun play(point: Int): Boolean {
@@ -120,6 +123,7 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
             selectedId = next.id; routeLeafId = next.id
         }
         autoPlayArmed = true; moveError = null
+        lastPlacement = if (point != PASS) Any() else null
         if (point != PASS) onStonePlaced?.invoke()
         return true
     }

@@ -4,6 +4,8 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import io.github.bianim.kataghost.R
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -65,6 +67,8 @@ fun GoBoard(
     onSelectMove: (Int) -> Unit = {},
     manualInput: Boolean = true,
     ownership: List<Float>? = null,
+    winRateDelta: Float? = null,
+    deltaAlpha: Float = 0f,
 ) {
     val resources = LocalResources.current
     val position = state.position
@@ -208,6 +212,20 @@ fun GoBoard(
                         onLongClick(resources.getString(R.string.preview_variation)) { state.startPreview(Candidate(candidate.label, candidate.pv)); true }
                     },
             )
+        }
+        if (winRateDelta != null && deltaAlpha > 0f) {
+            state.node.point?.let { point ->
+                val black = state.node.color == 1
+                Box(Modifier.offset(
+                    boardSize * ((41 + point.column * 31) / 640f) - 24.dp,
+                    (boardSize * ((41 + point.row * 31) / 640f) - (12 + 26 * (1 - deltaAlpha)).dp).coerceAtLeast(0.dp))
+                    .size(48.dp, 24.dp).alpha(deltaAlpha), contentAlignment = Alignment.Center) {
+                    Text(String.format(resources.configuration.locales[0], "%+.1f%%", winRateDelta),
+                        color = if (black) Color.White else Color.Black,
+                        modifier = Modifier.background(if (black) Color.Black else Color.White, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 4.dp), fontSize = 11.sp)
+                }
+            }
         }
         (touchPoint ?: pendingMove)?.let { move ->
             val point = BoardPoint.fromIndex(move)!!

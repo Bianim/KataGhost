@@ -29,6 +29,7 @@ data class EngineUiState(
     val error: String? = null,
     val maxVisits: Int = 500,
     val completedAnalysis: PositionAnalysis? = null,
+    val territoryBlackScore: Double? = null,
     val ownership: List<Float>? = null,
     val opponentResult: Pair<OpponentSearch, PositionAnalysis>? = null,
     val liveAnalysis: PositionAnalysis? = null,
@@ -152,9 +153,11 @@ class AnalysisController(
                         activeSession.setPosition(request.position)
                         publish(command) { it.copy(phase = EnginePhase.ANALYZING) }
                         if (request.territory) {
-                            val ownership = (activeSession as KataGoSession).evaluate(request.position).getJSONArray("whiteOwnership")
+                            val evaluation = (activeSession as KataGoSession).evaluate(request.position)
+                            val ownership = evaluation.getJSONArray("whiteOwnership")
                             check(ownership.length() == 361)
                             publish(command) { it.copy(phase = EnginePhase.READY,
+                                territoryBlackScore = evaluation.getDouble("finalBlackScore"),
                                 ownership = List(361) { ownership.getDouble(it).toFloat() }) }
                             continue
                         }
@@ -294,6 +297,7 @@ class AnalysisController(
                 maxVisits = request.maxVisits,
                 completedAnalysis = null,
                 ownership = null,
+                territoryBlackScore = null,
                 opponentResult = null,
                 liveAnalysis = null,
                 config = request.config,

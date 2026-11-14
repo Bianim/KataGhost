@@ -460,7 +460,11 @@ Java_io_github_bianim_kataghost_engine_NativeKataGo_evaluatePosition(JNIEnv* env
     e.evaluator->evaluate(p.board, p.history, p.next, params, buffer, true, true);
     e.bridge.check();
     const auto& out = *buffer.result;
+    /** 在局面副本上按当前规则计算即时终局分差。 */
+    auto finalHistory = p.history;
+    finalHistory.endAndScoreGameNow(p.board);
     json result{{"blackWinRate", 100.0 * (out.whiteLossProb + 0.5 * out.whiteNoResultProb)},
+        {"finalBlackScore", -finalHistory.finalWhiteMinusBlackScore},
         {"blackLead", -out.whiteLead}, {"blackScoreMean", -out.whiteScoreMean},
         {"scoreStdev", sqrt(std::max(0.0, static_cast<double>(out.whiteScoreMeanSq) -
           static_cast<double>(out.whiteScoreMean) * out.whiteScoreMean))},

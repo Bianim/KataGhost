@@ -250,4 +250,8 @@
     <string name="territory_estimate">Estimated territory</string>
     <string name="quick_candidates">Hints</string>
     <string name="no_liberties">No liberties</string>
+    <string name="white_win_rate">White win rate</string>
+    <string name="territory_lead">%1$s leads by %2$.2f points</string>
+    <string name="territory_stones">%1$s · On board: %2$d · Captures: %3$d</string>
+    <string name="territory_area_lead">%1$s leads by %2$.2f stones</string>
 </resources>

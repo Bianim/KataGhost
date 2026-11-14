@@ -166,6 +166,7 @@ fun RecordScreen(
                     }
                         confirmMove()
                         TerritoryLocked(territory) { Transport(state, settings.candidates, onCandidates) }
+                        if (territory) TerritorySummary(board, engine, position.rules)
                         TerritoryLocked(territory, modifier = Modifier.weight(1f).fillMaxWidth()) { CurrentAnalysis(state, viewport, engine, settings, onRetry, Modifier.fillMaxSize()) }
                         TerritoryLocked(territory) { AnalysisTabs(state, insetBottom = false) }
                     }
@@ -193,8 +194,11 @@ fun RecordScreen(
                     }
                     confirmMove()
                     TerritoryLocked(territory) { Transport(state, settings.candidates, onCandidates) }
-                    TerritoryLocked(territory) { CurrentAnalysis(state, viewport, engine, settings, onRetry,
-                        Modifier.fillMaxWidth().padding(horizontal = 8.dp).heightIn(max = if (state.tab == 0) 160.dp else 180.dp)) }
+                    Box(Modifier.fillMaxWidth().heightIn(min = 100.dp)) {
+                        TerritoryLocked(territory) { CurrentAnalysis(state, viewport, engine, settings, onRetry,
+                            Modifier.fillMaxWidth().padding(horizontal = 8.dp).heightIn(max = if (state.tab == 0) 160.dp else 180.dp)) }
+                        if (territory) TerritorySummary(board, engine, position.rules)
+                    }
                 }
                 TerritoryLocked(territory) { AnalysisTabs(state) }
             }
@@ -204,12 +208,28 @@ fun RecordScreen(
 
 @Composable
 private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: EngineUiState, settings: AppPreferences, manualInput: Boolean, modifier: Modifier, pendingMove: Int?, territory: Boolean, onSelectMove: (Int) -> Unit) {
-    GoBoard(state, board, engine.analysisFor(state.position), settings.coordinates, settings.showCandidateMoves && !territory, modifier, pendingMove.takeUnless { territory }, onSelectMove, manualInput && !territory, engine.ownership.takeIf { territory })
+    val placement = state.lastPlacement
+    val position = state.position
+    val placedPosition = remember(state, placement) { position }
+    val before = state.node.parentId?.let { engine.analysisFor(state.positionFor(it)) }
+    val after = engine.analysisFor(position)
+    var delta by remember(state, placement) { mutableStateOf<Float?>(null) }
+    val animation = remember(state, placement) { androidx.compose.animation.core.Animatable(0f) }
+    androidx.compose.runtime.LaunchedEffect(placement, position, before != null && after != null) {
+        if (placement != null && position == placedPosition && before != null && after != null && delta == null) {
+            val difference = after.blackWinRate - before.blackWinRate
+            delta = if (state.node.color == 1) difference else -difference
+            animation.snapTo(1f)
+            animation.animateTo(0f, androidx.compose.animation.core.tween(1300))
+        }
+    }
+    GoBoard(state, board, engine.analysisFor(state.position), settings.coordinates, settings.showCandidateMoves && !territory, modifier, pendingMove.takeUnless { territory }, onSelectMove, manualInput && !territory, engine.ownership.takeIf { territory },
+        delta.takeIf { !territory && state.preview == null && position == placedPosition }, animation.value)
 }
 
 @Composable
 private fun CurrentAnalysis(state: RecordUiState, viewport: TreeViewportState, engine: EngineUiState, settings: AppPreferences, onRetry: () -> Unit, modifier: Modifier) {
-    if (state.tab == 0) AnalysisPanel(state, engine, settings.engineEnabled, onRetry, modifier, settings.showCandidateMoves)
+    if (state.tab == 0) AnalysisPanel(state, engine, settings.engineEnabled, onRetry, modifier, settings.showCandidateMoves, if (settings.autoBlack && !settings.autoWhite) 2 else 1)
     else TreePanel(state, viewport, settings.engineEnabled, state::chooseNode, modifier)
 }
 
@@ -442,5 +462,24 @@ private fun BoardSnapshot.hasNoLibertiesAt(point: Int, player: Int): Boolean {
             }
         }
         if (side == player) otherLiberty else !otherLiberty
+    }
+}
+
+@Composable
+private fun TerritorySummary(board: BoardSnapshot, engine: EngineUiState, rules: io.github.bianim.kataghost.engine.GoRules) {
+    val resources = LocalResources.current
+    val areaScoring = rules == io.github.bianim.kataghost.engine.GoRules.CHINESE
+    val score = engine.territoryBlackScore?.let { if (areaScoring) it / 2 else it }
+    Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
+        Text(if (score == null) resources.getString(R.string.analyzing)
+            else if (kotlin.math.abs(score) < 0.005) resources.getString(R.string.draw)
+            else resources.getString(if (areaScoring) R.string.territory_area_lead else R.string.territory_lead,
+                resources.getString(if (score > 0) R.string.black else R.string.white), kotlin.math.abs(score)),
+            fontWeight = FontWeight.SemiBold)
+        for ((color, captures) in listOf(1 to board.blackCaptures, 2 to board.whiteCaptures)) {
+            Text(resources.getString(R.string.territory_stones,
+                resources.getString(if (color == 1) R.string.black else R.string.white),
+                (0..360).count { board.color(it) == color }, captures), fontSize = 11.sp)
+        }
     }
 }
