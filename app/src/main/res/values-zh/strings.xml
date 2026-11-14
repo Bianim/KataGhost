@@ -248,4 +248,6 @@
     <string name="territory">形势</string>
     <string name="territory_back">返回</string>
     <string name="territory_estimate">地盘归属估计</string>
+    <string name="quick_candidates">候选</string>
+    <string name="no_liberties">无气</string>
 </resources>

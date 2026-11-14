@@ -248,4 +248,6 @@
     <string name="territory">Territory</string>
     <string name="territory_back">Back</string>
     <string name="territory_estimate">Estimated territory</string>
+    <string name="quick_candidates">Hints</string>
+    <string name="no_liberties">No liberties</string>
 </resources>

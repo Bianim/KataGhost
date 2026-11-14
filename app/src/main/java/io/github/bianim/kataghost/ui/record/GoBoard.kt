@@ -116,7 +116,7 @@ fun GoBoard(
                     change.consume()
                     current = change
                     released = !change.pressed
-                    if (released && !longPressed && manualInput && preview == null) pointAt(change.position)?.takeIf(board::isLegal)?.let(onSelectMove)
+                    if (released && !longPressed && manualInput && preview == null) pointAt(change.position)?.let(onSelectMove)
                 }
             } finally { touchPoint = null }
         }

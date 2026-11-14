@@ -43,6 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.draw.clip
@@ -97,6 +99,19 @@ fun RecordScreen(
     val position = state.position
     val board = remember(position) { BoardSnapshot.from(position) }
     var pendingMove by remember(state.selectedId, position, state.preview, manualInput) { mutableStateOf<Int?>(null) }
+    var noLiberties by remember(position) { mutableStateOf(0) }
+    val notice = remember(position) { androidx.compose.animation.core.Animatable(0f) }
+    androidx.compose.runtime.LaunchedEffect(noLiberties, position) {
+        if (noLiberties > 0) {
+            notice.snapTo(1f)
+            kotlinx.coroutines.delay(500)
+            notice.animateTo(0f, androidx.compose.animation.core.tween(300))
+        }
+    }
+    val selectMove: (Int) -> Unit = { point ->
+        if (board.isLegal(point)) pendingMove = point
+        else if (!board.finished && board.hasNoLibertiesAt(point, position.nextPlayer)) noLiberties++
+    }
     val confirmMove: @Composable () -> Unit = {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
@@ -135,10 +150,20 @@ fun RecordScreen(
                 val rightMinimum = if (maxWidth < 680.dp) 280.dp else 320.dp
                 val boardSize = minOf(maxHeight, maxWidth - rightMinimum - 12.dp).coerceAtLeast(120.dp)
                 Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory) { pendingMove = it }
+                    RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory, selectMove)
                     Column(Modifier.weight(1f).fillMaxSize()) {
                         TerritoryLocked(territory) { header(true) }
+                        Box {
                         TerritoryLocked(territory, title = true) { Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth()) }
+                        if (!territory && notice.value > 0f) {
+                            Text(LocalResources.current.getString(R.string.no_liberties),
+                                color = GoColors.Surface,
+                                modifier = Modifier.align(Alignment.Center)
+                                    .offset(y = (-20 * (1f - notice.value)).dp).alpha(notice.value)
+                                    .clip(RoundedCornerShape(14.dp)).background(GoColors.Ink)
+                                    .padding(horizontal = 12.dp, vertical = 4.dp))
+                        }
+                    }
                         confirmMove()
                         TerritoryLocked(territory) { Transport(state, settings.candidates, onCandidates) }
                         TerritoryLocked(territory, modifier = Modifier.weight(1f).fillMaxWidth()) { CurrentAnalysis(state, viewport, engine, settings, onRetry, Modifier.fillMaxSize()) }
@@ -151,10 +176,20 @@ fun RecordScreen(
                 TerritoryLocked(territory) { header(false) }
                 Column(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally) {
-                    TerritoryLocked(territory, title = true) { Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth()) }
+                    Box {
+                        TerritoryLocked(territory, title = true) { Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth()) }
+                        if (!territory && notice.value > 0f) {
+                            Text(LocalResources.current.getString(R.string.no_liberties),
+                                color = GoColors.Surface,
+                                modifier = Modifier.align(Alignment.Center)
+                                    .offset(y = (-20 * (1f - notice.value)).dp).alpha(notice.value)
+                                    .clip(RoundedCornerShape(14.dp)).background(GoColors.Ink)
+                                    .padding(horizontal = 12.dp, vertical = 4.dp))
+                        }
+                    }
                     BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                         val boardSize = minOf(maxWidth, (maxHeight).coerceAtLeast(0.dp))
-                        RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory) { pendingMove = it }
+                        RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory, selectMove)
                     }
                     confirmMove()
                     TerritoryLocked(territory) { Transport(state, settings.candidates, onCandidates) }
@@ -323,10 +358,17 @@ private fun Transport(state: RecordUiState, candidates: Boolean, onCandidates: (
             Text(state.node.move.toString(), fontSize = 17.sp, fontWeight = FontWeight.Medium, color = GoColors.Ink)
             Text(if (state.preview != null) resources.getString(R.string.preview_move_suffix, state.previewStep) else resources.getString(R.string.move_location_suffix, state.node.moveLabel(resources)), fontSize = 11.sp, color = GoColors.Muted, maxLines = 1)
         }
-        androidx.compose.material3.Switch(checked = candidates, onCheckedChange = onCandidates,
-            modifier = Modifier.testTag("quick-candidates").semantics {
-                contentDescription = resources.getString(R.string.candidates)
-            })
+        Row(Modifier.weight(1f).height(48.dp).testTag("quick-candidates")
+            .toggleable(candidates, role = Role.Switch, onValueChange = onCandidates),
+            horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+            Text(resources.getString(R.string.quick_candidates), fontSize = 11.sp, maxLines = 1)
+            Spacer(Modifier.width(4.dp))
+            Box(Modifier.size(30.dp, 16.dp).clip(RoundedCornerShape(8.dp))
+                .background(if (candidates) GoColors.Primary else GoColors.Muted).padding(2.dp)) {
+                Box(Modifier.align(if (candidates) Alignment.CenterEnd else Alignment.CenterStart)
+                    .size(12.dp).clip(RoundedCornerShape(50)).background(GoColors.Surface))
+            }
+        }
         TransportButton(GoSymbol.First, resources.getString(R.string.first_move), !state.atStart, state::first)
         TransportButton(GoSymbol.Previous, resources.getString(R.string.previous_move), !state.atStart, state::previous)
         TransportButton(GoSymbol.Next, resources.getString(R.string.next_move), !state.atEnd, state::next)
@@ -375,5 +417,30 @@ private fun TerritoryLocked(active: Boolean, modifier: Modifier = Modifier, titl
         })
         if (title) Text(LocalResources.current.getString(R.string.territory_estimate),
             modifier = Modifier.align(Alignment.Center))
+    }
+}
+
+private fun BoardSnapshot.hasNoLibertiesAt(point: Int, player: Int): Boolean {
+    if (color(point) != 0) return false
+    fun neighbors(p: Int) = buildList {
+        if (p % 19 > 0) add(p - 1)
+        if (p % 19 < 18) add(p + 1)
+        if (p >= 19) add(p - 19)
+        if (p < 342) add(p + 19)
+    }
+    return neighbors(point).none { adjacent ->
+        val side = color(adjacent)
+        if (side == 0) return@none true
+        val seen = mutableSetOf(adjacent)
+        val queue = ArrayDeque(listOf(adjacent))
+        var otherLiberty = false
+        while (queue.isNotEmpty() && !otherLiberty) {
+            for (next in neighbors(queue.removeFirst())) {
+                if (next == point) continue
+                if (color(next) == 0) otherLiberty = true
+                if (color(next) == side && seen.add(next)) queue.addLast(next)
+            }
+        }
+        if (side == player) otherLiberty else !otherLiberty
     }
 }
