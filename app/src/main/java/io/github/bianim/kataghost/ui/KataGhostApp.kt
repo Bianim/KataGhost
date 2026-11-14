@@ -35,6 +35,26 @@ fun KataGhostApp() {
     val resources = LocalResources.current
     val document: RecordViewModel = viewModel()
     val record = document.record
+    val audioContext = androidx.compose.ui.platform.LocalContext.current
+    DisposableEffect(audioContext, record) {
+        val pool = android.media.SoundPool.Builder().setMaxStreams(1)
+            .setAudioAttributes(android.media.AudioAttributes.Builder()
+                .setUsage(android.media.AudioAttributes.USAGE_GAME)
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build())
+            .build()
+        pool.setOnLoadCompleteListener { _, sample, status ->
+            if (status == 0) {
+                record.onStonePlaced = { pool.play(sample, 1f, 1f, 0, 0, 1f) }
+            }
+        }
+        pool.load(audioContext, io.github.bianim.kataghost.R.raw.stone_placement, 1)
+        onDispose {
+            record.onStonePlaced = null
+            pool.setOnLoadCompleteListener(null)
+            pool.release()
+        }
+    }
     val settings = document.preferences
     val viewport = rememberSaveable(saver = TreeViewportState.Saver) { TreeViewportState() }
     var page by rememberSaveable { mutableIntStateOf(0) }

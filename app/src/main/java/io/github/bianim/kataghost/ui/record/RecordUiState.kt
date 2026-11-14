@@ -92,6 +92,8 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
     }
 
     /** All manual and automatic moves pass through the same official legality check. */
+    internal var onStonePlaced: (() -> Unit)? = null
+
     fun play(point: Int): Boolean {
         if (preview != null) return false
         val board = BoardSnapshot.from(basePosition)
@@ -118,6 +120,7 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
             selectedId = next.id; routeLeafId = next.id
         }
         autoPlayArmed = true; moveError = null
+        if (point != PASS) onStonePlaced?.invoke()
         return true
     }
 
