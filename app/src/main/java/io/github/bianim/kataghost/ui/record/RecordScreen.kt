@@ -167,7 +167,7 @@ internal fun RecordScreen(
                     }
                         confirmMove()
                         if (territory) TerritorySummary(board, engine, position.rules)
-                        else Transport(state, settings.candidates, if (settings.autoBlack xor settings.autoWhite) 2 else 1, onCandidates)
+                        else Transport(state, settings, onCandidates)
                         TerritoryLocked(territory, modifier = Modifier.weight(1f).fillMaxWidth()) { CurrentAnalysis(state, viewport, engine, settings, onRetry, Modifier.fillMaxSize()) }
                         TerritoryLocked(territory) { AnalysisTabs(state, insetBottom = false) }
                     }
@@ -196,7 +196,7 @@ internal fun RecordScreen(
                     confirmMove()
                     Column(Modifier.fillMaxWidth().height(76.dp), verticalArrangement = Arrangement.Center) {
                         if (territory) TerritorySummary(board, engine, position.rules)
-                        else Transport(state, settings.candidates, if (settings.autoBlack xor settings.autoWhite) 2 else 1, onCandidates)
+                        else Transport(state, settings, onCandidates)
                     }
                     Box(Modifier.fillMaxWidth().heightIn(min = 100.dp)) {
                         TerritoryLocked(territory) { CurrentAnalysis(state, viewport, engine, settings, onRetry,
@@ -374,8 +374,15 @@ private fun PlayerDetails(state: RecordUiState, black: Boolean, automatic: Boole
 }
 
 @Composable
-private fun Transport(state: RecordUiState, candidates: Boolean, steps: Int, onCandidates: (Boolean) -> Unit) {
+private fun Transport(state: RecordUiState, settings: AppPreferences, onCandidates: (Boolean) -> Unit) {
     val resources = LocalResources.current
+    val candidates = settings.candidates
+    val humanColor = if (settings.autoBlack xor settings.autoWhite) {
+        if (settings.autoBlack) 2 else 1
+    } else null
+    val previewing = state.preview != null
+    val previous = if (previewing) null else state.adjacentTurn(-1, humanColor)
+    val next = if (previewing) null else state.adjacentTurn(1, humanColor)
     Row(Modifier.fillMaxWidth().height(48.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Row(Modifier.weight(1f).padding(start = 5.dp).testTag("move-indicator"), verticalAlignment = Alignment.CenterVertically) {
             Text(state.node.move.toString(), fontSize = 17.sp, fontWeight = FontWeight.Medium, color = GoColors.Ink)
@@ -393,8 +400,12 @@ private fun Transport(state: RecordUiState, candidates: Boolean, steps: Int, onC
             }
         }
         TransportButton(GoSymbol.First, resources.getString(R.string.first_move), !state.atStart, state::first)
-        TransportButton(GoSymbol.Previous, resources.getString(R.string.previous_move), !state.atStart) { state.previous(steps) }
-        TransportButton(GoSymbol.Next, resources.getString(R.string.next_move), !state.atEnd) { state.next(steps) }
+        TransportButton(GoSymbol.Previous, resources.getString(R.string.previous_move), if (previewing) !state.atStart else previous != null) {
+            if (previewing) state.previous() else previous?.let(state::seekToNode)
+        }
+        TransportButton(GoSymbol.Next, resources.getString(R.string.next_move), if (previewing) !state.atEnd else next != null) {
+            if (previewing) state.next() else next?.let(state::seekToNode)
+        }
         TransportButton(GoSymbol.Last, resources.getString(R.string.last_move), !state.atEnd, state::last)
     }
 }

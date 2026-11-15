@@ -77,7 +77,7 @@ class SettingsFeatureUiTest {
         play(point)
     }
 
-    @Test fun handicapPersistsAndTwoStepNavigationClampsAtTheEnds() {
+    @Test fun handicapPersistsAndNavigationSelectsHumanTurns() {
         ui.onNodeWithText("候选变化").assertIsDisplayed()
         openSettings()
         val title = ui.onNodeWithText("白方让子").getUnclippedBoundsInRoot()
@@ -108,12 +108,10 @@ class SettingsFeatureUiTest {
         }
         ui.onNodeWithContentDescription("上一手").performClick()
         assertEquals(1, count())
-        ui.onNodeWithContentDescription("上一手").performClick()
-        assertEquals(0, count())
-        ui.onNodeWithContentDescription("下一手").performClick()
-        assertEquals(2, count())
+        ui.onNodeWithContentDescription("上一手").assertIsNotEnabled()
         ui.onNodeWithContentDescription("下一手").performClick()
         assertEquals(3, count())
+        ui.onNodeWithContentDescription("下一手").assertIsNotEnabled()
         val board = ui.onNodeWithTag("go-board").getUnclippedBoundsInRoot()
         val controls = ui.onNodeWithTag("territory").getUnclippedBoundsInRoot()
         ui.onNodeWithTag("territory").performClick()
@@ -121,6 +119,31 @@ class SettingsFeatureUiTest {
         assertEquals(board, ui.onNodeWithTag("go-board").getUnclippedBoundsInRoot())
         assertEquals(controls, ui.onNodeWithTag("territory-back").getUnclippedBoundsInRoot())
         ui.onNodeWithTag("territory-back").performClick()
+    }
+
+    @Test fun undoBeforeAiReplyReturnsToTheHumanTurn() {
+        for (autoBlack in listOf(false, true)) {
+            ui.runOnIdle {
+                document.updatePreferences(AppPreferences(engineEnabled = false, autoBlack = autoBlack, autoWhite = !autoBlack))
+                document.record.newGame()
+                for (coordinate in listOf("D4", "Q16", "D16", "Q4").take(if (autoBlack) 4 else 3)) {
+                    assertTrue(document.record.play(BoardPoint.parse(coordinate).index))
+                }
+            }
+            ui.onNodeWithContentDescription("上一手").performClick()
+            assertEquals(if (autoBlack) 3 else 2, count())
+            ui.runOnIdle { assertEquals(if (autoBlack) 2 else 1, document.record.position.nextPlayer) }
+            ui.onNodeWithContentDescription("下一手").assertIsNotEnabled()
+            for (automatic in listOf(false, true)) {
+                ui.runOnIdle {
+                    document.updatePreferences(document.preferences.copy(autoBlack = automatic, autoWhite = automatic))
+                }
+                ui.onNodeWithContentDescription("下一手").performClick()
+                assertEquals(if (autoBlack) 4 else 3, count())
+                ui.onNodeWithContentDescription("上一手").performClick()
+                assertEquals(if (autoBlack) 3 else 2, count())
+            }
+        }
     }
 
     @Test fun aiSearchesWhileThePreviousMoveDeltaFades() {

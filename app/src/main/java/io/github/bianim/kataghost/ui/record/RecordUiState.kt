@@ -142,12 +142,21 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
         pauseAutomatic(); moveError = null
         if (preview != null) previewStep = 0 else selectedId = route.first().id
     }
-    fun previous(steps: Int = 1) {
+    internal fun adjacentTurn(direction: Int, humanColor: Int?): String? {
+        val line = route
+        val current = line.indexOfFirst { it.id == selectedId }
+        val indices = if (direction < 0) (current - 1) downTo 0 else (current + 1) until line.size
+        return indices.asSequence().map { line[it].id }.firstOrNull { id ->
+            humanColor == null || positionFor(id).nextPlayer == humanColor
+        }
+    }
+
+    fun previous() {
         pauseAutomatic(); moveError = null
         if (preview != null) previewStep = (previewStep - 1).coerceAtLeast(0)
-        else repeat(steps) { node.parentId?.let { selectedId = it } }
+        else node.parentId?.let { selectedId = it }
     }
-    fun next(steps: Int = 1) { pauseAutomatic(); repeat(if (preview != null) 1 else steps) { advance() } }
+    fun next() { pauseAutomatic(); advance() }
     fun last() {
         pauseAutomatic(); moveError = null
         if (preview != null) previewStep = preview!!.moves.size else selectedId = routeLeafId
