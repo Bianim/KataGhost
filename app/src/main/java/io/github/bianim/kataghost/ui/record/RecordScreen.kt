@@ -194,7 +194,7 @@ internal fun RecordScreen(
                         RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory, selectMove, onDeltaFinished)
                     }
                     confirmMove()
-                    Column(Modifier.fillMaxWidth().height(54.dp), verticalArrangement = Arrangement.Center) {
+                    Column(Modifier.fillMaxWidth().height(76.dp), verticalArrangement = Arrangement.Center) {
                         if (territory) TerritorySummary(board, engine, position.rules)
                         else Transport(state, settings.candidates, if (settings.autoBlack xor settings.autoWhite) 2 else 1, onCandidates)
                     }
@@ -381,10 +381,10 @@ private fun Transport(state: RecordUiState, candidates: Boolean, steps: Int, onC
             Text(state.node.move.toString(), fontSize = 17.sp, fontWeight = FontWeight.Medium, color = GoColors.Ink)
             Text(if (state.preview != null) resources.getString(R.string.preview_move_suffix, state.previewStep) else resources.getString(R.string.move_location_suffix, state.node.moveLabel(resources)), fontSize = 11.sp, color = GoColors.Muted, maxLines = 1)
         }
-        Row(Modifier.weight(1f).height(48.dp).testTag("quick-candidates")
+        Row(Modifier.weight(1.2f).height(48.dp).testTag("quick-candidates")
             .toggleable(candidates, role = Role.Switch, onValueChange = onCandidates),
             horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-            Text(resources.getString(R.string.quick_candidates), fontSize = 11.sp, maxLines = 1)
+            Text(resources.getString(R.string.quick_candidates), fontSize = 11.sp, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
             Spacer(Modifier.width(4.dp))
             Box(Modifier.size(30.dp, 16.dp).clip(RoundedCornerShape(8.dp))
                 .background(if (candidates) GoColors.Primary else GoColors.Muted).padding(2.dp)) {
@@ -475,14 +475,20 @@ private fun BoardSnapshot.hasNoLibertiesAt(point: Int, player: Int): Boolean {
 private fun TerritorySummary(board: BoardSnapshot, engine: EngineUiState, rules: io.github.bianim.kataghost.engine.GoRules) {
     val resources = LocalResources.current
     val areaScoring = rules == io.github.bianim.kataghost.engine.GoRules.CHINESE
-    val score = engine.territoryBlackScore?.let { if (areaScoring) it / 2 else it }
+    fun leadText(points: Double): String {
+        val score = if (areaScoring) points / 2 else points
+        if (kotlin.math.abs(score) < 0.005) return resources.getString(R.string.draw)
+        return resources.getString(if (areaScoring) R.string.territory_area_lead else R.string.territory_lead,
+            resources.getString(if (score > 0) R.string.black else R.string.white), kotlin.math.abs(score))
+    }
     Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(if (score == null) resources.getString(R.string.analyzing)
-            else if (kotlin.math.abs(score) < 0.005) resources.getString(R.string.draw)
-            else resources.getString(if (areaScoring) R.string.territory_area_lead else R.string.territory_lead,
-                resources.getString(if (score > 0) R.string.black else R.string.white), kotlin.math.abs(score)),
+        Text(engine.territoryEstimatedBlackLead?.let { resources.getString(R.string.territory_predicted, leadText(it)) }
+            ?: resources.getString(R.string.analyzing),
             fontWeight = FontWeight.SemiBold, fontSize = 17.sp, lineHeight = 20.sp)
+        engine.territoryBlackScore?.let {
+            Text(resources.getString(R.string.territory_if_scored_now, leadText(it)), fontSize = 12.sp, lineHeight = 14.sp, color = GoColors.Muted)
+        }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             for ((color, captures) in listOf(1 to board.blackCaptures, 2 to board.whiteCaptures)) {
                 Text(resources.getString(R.string.territory_stones,

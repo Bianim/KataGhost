@@ -31,6 +31,20 @@ class EngineIntegrationTest {
         verifyOfficialPositions(Accelerator.CPU)
     }
 
+    @Test
+    fun fiveStoneHandicapSeparatesImmediateScoreFromEstimatedLead() {
+        val setup = listOf("D16", "Q16", "D4", "Q4", "K10").map { BoardPoint.parse(it).index }
+        val position = AnalysisPosition(listOf("K4", "K16").map { BoardPoint.parse(it).index },
+            initialBlack = setup, initialPlayer = 2)
+        KataGoSession.open(context, Accelerator.CPU).use { session ->
+            val evaluation = session.evaluate(position)
+            assertEquals(-7.5, evaluation.getDouble("finalBlackScore"), 0.001)
+            assertEquals(5.0, session.evaluate(position.copy(komi = -5f)).getDouble("finalBlackScore"), 0.001)
+            assertTrue(evaluation.getDouble("blackLead") > 0.0)
+            assertEquals(361, evaluation.getJSONArray("whiteOwnership").length())
+        }
+    }
+
     fun verifyOfficialPositions(accelerator: Accelerator, model: KataGoModel = KataGoModel.B6) {
         val fixtures = JSONObject(context.assets.open(model.fixturesAsset).bufferedReader().use { it.readText() }).getJSONArray("cases")
         KataGoSession.open(context, accelerator, model).use { session ->

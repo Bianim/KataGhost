@@ -248,7 +248,7 @@
     <string name="territory">Territory</string>
     <string name="territory_back">Back</string>
     <string name="territory_estimate">Estimated territory</string>
-    <string name="quick_candidates">Hints</string>
+    <string name="quick_candidates">Candidates</string>
     <string name="no_liberties">No liberties</string>
     <string name="white_win_rate">White win rate</string>
     <string name="territory_lead">%1$s leads by %2$.2f points</string>
@@ -270,4 +270,6 @@
         <item>8 stones</item>
         <item>9 stones</item>
     </string-array>
+    <string name="territory_predicted">Estimated: %1$s</string>
+    <string name="territory_if_scored_now">Scored now (with komi and rule bonuses): %1$s</string>
 </resources>

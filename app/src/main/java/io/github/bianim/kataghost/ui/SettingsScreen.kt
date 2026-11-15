@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
@@ -84,20 +85,29 @@ fun SettingsScreen(
                 SectionTitle(resources.getString(R.string.search_automation))
                 ToggleRow(resources.getString(R.string.auto_black), resources.getString(R.string.katago_black), autoBlack, { autoBlack = it }, "auto-black")
                 ToggleRow(resources.getString(R.string.auto_white), resources.getString(R.string.katago_white), autoWhite, { autoWhite = it }, "auto-white")
-                SectionTitle(resources.getString(R.string.white_handicap))
+
                 val handicaps = resources.getStringArray(R.array.white_handicap_options)
-                androidx.compose.foundation.layout.Box {
-                    TextButton(onClick = { handicapMenu = true }) { Text(handicaps[whiteHandicap]) }
-                    androidx.compose.material3.DropdownMenu(expanded = handicapMenu, onDismissRequest = { handicapMenu = false }) {
-                        handicaps.forEachIndexed { index, label ->
-                            androidx.compose.material3.DropdownMenuItem(text = { Text(label) }, onClick = {
-                                whiteHandicap = index
-                                handicapMenu = false
-                            })
+                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        Text(resources.getString(R.string.white_handicap), fontSize = 15.sp, color = GoColors.Ink)
+                        Hint(resources.getString(R.string.white_handicap_hint))
+                    }
+                    Box {
+                        OutlinedButton(onClick = { handicapMenu = true }) {
+                            Text(handicaps[whiteHandicap])
+                            GoIcon(GoSymbol.Chevron, Modifier.size(16.dp).rotate(90f), GoColors.Muted)
+                        }
+                        DropdownMenu(expanded = handicapMenu, onDismissRequest = { handicapMenu = false }) {
+                            handicaps.forEachIndexed { index, label ->
+                                DropdownMenuItem(text = { Text(label) }, onClick = {
+                                    whiteHandicap = index
+                                    handicapMenu = false
+                                })
+                            }
                         }
                     }
                 }
-                Hint(resources.getString(R.string.white_handicap_hint))
                 ToggleRow(resources.getString(R.string.wait_win_rate_change), resources.getString(R.string.wait_win_rate_change_hint),
                     waitForWinRateChange, { waitForWinRateChange = it }, "wait-win-rate-change")
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

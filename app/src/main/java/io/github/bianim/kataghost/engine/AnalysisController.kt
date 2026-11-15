@@ -30,6 +30,7 @@ data class EngineUiState(
     val maxVisits: Int = 500,
     val completedAnalysis: PositionAnalysis? = null,
     val territoryBlackScore: Double? = null,
+    val territoryEstimatedBlackLead: Double? = null,
     val ownership: List<Float>? = null,
     val opponentResult: Pair<OpponentSearch, PositionAnalysis>? = null,
     val liveAnalysis: PositionAnalysis? = null,
@@ -158,6 +159,7 @@ class AnalysisController(
                             check(ownership.length() == 361)
                             publish(command) { it.copy(phase = EnginePhase.READY,
                                 territoryBlackScore = evaluation.getDouble("finalBlackScore"),
+                                territoryEstimatedBlackLead = evaluation.getDouble("blackLead"),
                                 ownership = List(361) { ownership.getDouble(it).toFloat() }) }
                             continue
                         }
@@ -308,6 +310,7 @@ class AnalysisController(
                 completedAnalysis = null,
                 ownership = null,
                 territoryBlackScore = null,
+                territoryEstimatedBlackLead = null,
                 opponentResult = null,
                 liveAnalysis = null,
                 config = request.config,

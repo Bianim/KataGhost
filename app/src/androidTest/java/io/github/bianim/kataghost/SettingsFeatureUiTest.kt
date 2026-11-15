@@ -78,7 +78,13 @@ class SettingsFeatureUiTest {
     }
 
     @Test fun handicapPersistsAndTwoStepNavigationClampsAtTheEnds() {
+        ui.onNodeWithText("候选变化").assertIsDisplayed()
         openSettings()
+        val title = ui.onNodeWithText("白方让子").getUnclippedBoundsInRoot()
+        val hint = ui.onNodeWithText("新建棋局时生效。让子摆在星位。").getUnclippedBoundsInRoot()
+        val dropdown = ui.onNodeWithText("不让").getUnclippedBoundsInRoot()
+        assertTrue(hint.top >= title.bottom)
+        assertTrue(dropdown.left > title.right && dropdown.top < hint.bottom && dropdown.bottom > title.top)
         ui.onNodeWithTag("wait-win-rate-change").assertIsOn().performClick()
         ui.onNodeWithTag("auto-white").performClick()
         ui.onNodeWithText("不让").performClick()

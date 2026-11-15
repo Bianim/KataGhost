@@ -248,7 +248,7 @@
     <string name="territory">形势</string>
     <string name="territory_back">返回</string>
     <string name="territory_estimate">地盘归属估计</string>
-    <string name="quick_candidates">候选</string>
+    <string name="quick_candidates">候选变化</string>
     <string name="no_liberties">无气</string>
     <string name="white_win_rate">白棋胜率</string>
     <string name="territory_lead">%1$s领先 %2$.2f 目</string>
@@ -270,4 +270,6 @@
         <item>让八子</item>
         <item>让九子</item>
     </string-array>
+    <string name="territory_predicted">预计 %1$s</string>
+    <string name="territory_if_scored_now">立即计分（含贴目及规则补偿）：%1$s</string>
 </resources>
