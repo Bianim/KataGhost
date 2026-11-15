@@ -170,6 +170,15 @@ class SettingsFeatureUiTest {
         }
     }
 
+    @Test fun moreMenuOmitsPassAndAutomaticControls() {
+        ui.runOnIdle { document.updatePreferences(document.preferences.copy(autoWhite = true)) }
+        ui.onNodeWithTag("board-pass").assertIsDisplayed()
+        ui.onNodeWithContentDescription("更多选项").performClick()
+        ui.onNodeWithTag("menu-settings").assertIsDisplayed()
+        ui.onNodeWithTag("pass-move").assertDoesNotExist()
+        ui.onNodeWithTag("automatic-control").assertDoesNotExist()
+    }
+
     @Test fun opponentBudgetPersistsIndependentlyOfAnalysis() {
         openSettings()
         ui.onNodeWithTag("opponent-visits-input").performScrollTo().performTextReplacement("64")
@@ -319,7 +328,10 @@ class SettingsFeatureUiTest {
         ui.onNodeWithContentDescription("上一手").performClick()
         assertFalse(document.record.autoPlayArmed)
         ui.onNodeWithContentDescription("更多选项").performClick()
-        ui.onNodeWithTag("automatic-control").performClick()
+        ui.onNodeWithTag("automatic-control").assertDoesNotExist()
+        ui.onNodeWithTag("pass-move").assertDoesNotExist()
+        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+        ui.onNodeWithTag("resume-automatic").performClick()
         waitForMoves(offCount + 1)
         setEngine(false)
     }

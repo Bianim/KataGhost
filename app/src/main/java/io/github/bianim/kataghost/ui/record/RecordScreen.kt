@@ -140,8 +140,7 @@ internal fun RecordScreen(
     }
     val header: @Composable (Boolean) -> Unit = { compact ->
         RecordHeader(state, settings, engine, onEngineEnabled, onSettings, compact,
-            onPass = { state.play(PASS) }, canPass = manualInput && state.preview == null && !board.finished,
-            onImport = onImport, onExport = onExport, onResumeAutomatic = onResumeAutomatic, onNewGame = onNewGame)
+            onImport = onImport, onExport = onExport, onNewGame = onNewGame)
     }
     BoxWithConstraints(modifier.fillMaxSize().background(GoColors.Background)) {
         if (maxWidth > maxHeight) {
@@ -238,8 +237,8 @@ private fun CurrentAnalysis(state: RecordUiState, viewport: TreeViewportState, e
 
 @Composable
 private fun RecordHeader(state: RecordUiState, settings: AppPreferences, engine: EngineUiState, onEnabled: (Boolean) -> Unit,
-    onSettings: () -> Unit, compact: Boolean, onPass: () -> Unit, canPass: Boolean,
-    onImport: () -> Unit, onExport: () -> Unit, onResumeAutomatic: () -> Unit, onNewGame: () -> Unit) {
+    onSettings: () -> Unit, compact: Boolean,
+    onImport: () -> Unit, onExport: () -> Unit, onNewGame: () -> Unit) {
     val resources = LocalResources.current
     var confirmClear by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
@@ -255,14 +254,6 @@ private fun RecordHeader(state: RecordUiState, settings: AppPreferences, engine:
             Box {
                 IconButton(onClick = { menu = true }, modifier = Modifier.size(48.dp).semantics { contentDescription = resources.getString(R.string.more_options) }) { GoIcon(GoSymbol.More) }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }, modifier = Modifier.width(232.dp), shape = RoundedCornerShape(16.dp), containerColor = Color(0xFFF0F4E8)) {
-                    DropdownMenuItem(text = { Text(resources.getString(R.string.pass_move), fontSize = 13.sp) }, enabled = canPass,
-                        onClick = { menu = false; onPass() }, modifier = Modifier.testTag("pass-move"))
-                    if (settings.hasAutomaticPlayer) {
-                        val active = state.autoPlayArmed && settings.engineEnabled
-                        DropdownMenuItem(text = { Text(if (active) resources.getString(R.string.pause_auto) else resources.getString(R.string.resume_auto), fontSize = 13.sp) },
-                            onClick = { menu = false; if (active) state.pauseAutomatic() else onResumeAutomatic() },
-                            enabled = state.preview == null, modifier = Modifier.testTag("automatic-control"))
-                    }
                     DropdownMenuItem(text = { Text(resources.getString(R.string.import_sgf), fontSize = 13.sp) }, onClick = { menu = false; onImport() }, modifier = Modifier.testTag("menu-import-sgf"))
                     DropdownMenuItem(text = { Text(resources.getString(R.string.export_sgf), fontSize = 13.sp) }, onClick = { menu = false; onExport() }, modifier = Modifier.testTag("menu-export-sgf"))
                     DropdownMenuItem(text = { Text(resources.getString(R.string.clear_board), fontSize = 13.sp) }, onClick = { menu = false; confirmClear = true }, modifier = Modifier.testTag("menu-clear-board"))

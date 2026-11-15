@@ -141,8 +141,7 @@ class RecordUiTest {
         ui.onNodeWithContentDescription("下一手").performClick()
         assertEquals(captured, boardState())
         repeat(2) {
-            ui.onNodeWithContentDescription("更多选项").performClick()
-            ui.onNodeWithTag("pass-move").performClick()
+            ui.onNodeWithTag("board-pass").performClick()
         }
         ui.onNodeWithTag("turn-label").assertTextEquals("棋局结束")
         setEngine(true)
@@ -150,7 +149,7 @@ class RecordUiTest {
         assertTrue(text("analysis-visits").startsWith("0 visits"))
         assertTrue(ui.onAllNodesWithTag("candidate-A").fetchSemanticsNodes().isEmpty())
         ui.onNodeWithContentDescription("更多选项").performClick()
-        ui.onNodeWithTag("pass-move").assertIsNotEnabled()
+        ui.onNodeWithTag("pass-move").assertDoesNotExist()
     }
 
     @Test
