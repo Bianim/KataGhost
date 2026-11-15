@@ -54,6 +54,9 @@ fun SettingsScreen(
     var draftVisits by rememberSaveable(settings.maxVisits) { mutableStateOf(settings.maxVisits.toString()) }
     var autoBlack by rememberSaveable(settings.autoBlack) { mutableStateOf(settings.autoBlack) }
     var autoWhite by rememberSaveable(settings.autoWhite) { mutableStateOf(settings.autoWhite) }
+    var whiteHandicap by rememberSaveable(settings.whiteHandicap) { mutableStateOf(settings.whiteHandicap) }
+    var waitForWinRateChange by rememberSaveable(settings.waitForWinRateChange) { mutableStateOf(settings.waitForWinRateChange) }
+    var handicapMenu by remember { mutableStateOf(false) }
     var coordinates by rememberSaveable(settings.coordinates) { mutableStateOf(settings.coordinates) }
     var candidates by rememberSaveable(settings.candidates) { mutableStateOf(settings.candidates) }
     val parsedKomi = draftKomi.toFloatOrNull()?.takeIf(::validKomi)
@@ -70,6 +73,7 @@ fun SettingsScreen(
     val valid = parsedKomi != null && parsedVisits != null && (followsAnalysis || opponent != null)
     val changed = (!followsAnalysis && opponent == null) || opponent != settings.opponentSearch || parsedKomi != komi || draftRule != rules || parsedVisits != settings.maxVisits ||
         autoBlack != settings.autoBlack || autoWhite != settings.autoWhite ||
+        whiteHandicap != settings.whiteHandicap || waitForWinRateChange != settings.waitForWinRateChange ||
         coordinates != settings.coordinates || candidates != settings.candidates
 
     Column(Modifier.fillMaxSize().imePadding().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)).testTag("settings-screen")) {
@@ -80,6 +84,22 @@ fun SettingsScreen(
                 SectionTitle(resources.getString(R.string.search_automation))
                 ToggleRow(resources.getString(R.string.auto_black), resources.getString(R.string.katago_black), autoBlack, { autoBlack = it }, "auto-black")
                 ToggleRow(resources.getString(R.string.auto_white), resources.getString(R.string.katago_white), autoWhite, { autoWhite = it }, "auto-white")
+                SectionTitle(resources.getString(R.string.white_handicap))
+                val handicaps = resources.getStringArray(R.array.white_handicap_options)
+                androidx.compose.foundation.layout.Box {
+                    TextButton(onClick = { handicapMenu = true }) { Text(handicaps[whiteHandicap]) }
+                    androidx.compose.material3.DropdownMenu(expanded = handicapMenu, onDismissRequest = { handicapMenu = false }) {
+                        handicaps.forEachIndexed { index, label ->
+                            androidx.compose.material3.DropdownMenuItem(text = { Text(label) }, onClick = {
+                                whiteHandicap = index
+                                handicapMenu = false
+                            })
+                        }
+                    }
+                }
+                Hint(resources.getString(R.string.white_handicap_hint))
+                ToggleRow(resources.getString(R.string.wait_win_rate_change), resources.getString(R.string.wait_win_rate_change_hint),
+                    waitForWinRateChange, { waitForWinRateChange = it }, "wait-win-rate-change")
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     val labels = resources.getStringArray(R.array.opponent_presets)
                     OpponentPreset.entries.forEachIndexed { index, preset ->
@@ -156,7 +176,8 @@ fun SettingsScreen(
                 Button(onClick = {
                     focus.clearFocus()
                     onApply(settings.copy(opponentSearch = opponent, maxVisits = checkNotNull(parsedVisits),
-                        autoBlack = autoBlack, autoWhite = autoWhite, coordinates = coordinates, candidates = candidates),
+                        autoBlack = autoBlack, autoWhite = autoWhite, whiteHandicap = whiteHandicap,
+                        waitForWinRateChange = waitForWinRateChange, coordinates = coordinates, candidates = candidates),
                         draftRule, checkNotNull(parsedKomi))
                 }, enabled = changed && valid && !busy, modifier = Modifier.fillMaxWidth().testTag("apply-settings")) {
                     Text(resources.getString(if (busy) R.string.applying else if (changed) R.string.apply_settings else R.string.settings_saved))

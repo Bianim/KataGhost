@@ -254,4 +254,20 @@
     <string name="territory_lead">%1$s领先 %2$.2f 目</string>
     <string name="territory_stones">%1$s · 盘上 %2$d 子 · 提子 %3$d</string>
     <string name="territory_area_lead">%1$s领先 %2$.2f 子</string>
+    <string name="white_handicap">白方让子</string>
+    <string name="white_handicap_hint">新建棋局时生效。让子摆在星位。</string>
+    <string name="wait_win_rate_change">胜率变化消失后落子</string>
+    <string name="wait_win_rate_change_hint">显示上一步胜率变化时，AI 可以继续思考。</string>
+    <string-array name="white_handicap_options">
+        <item>不让</item>
+        <item>让先</item>
+        <item>让二子</item>
+        <item>让三子</item>
+        <item>让四子</item>
+        <item>让五子</item>
+        <item>让六子</item>
+        <item>让七子</item>
+        <item>让八子</item>
+        <item>让九子</item>
+    </string-array>
 </resources>

@@ -53,7 +53,7 @@ class AnalysisController(
 ) : AutoCloseable {
     private data class Request(val position: AnalysisPosition?, val enabled: Boolean, val visible: Boolean,
                                val maxVisits: Int, val config: EngineConfig, val benchmarkVisits: Int? = null,
-                               val history: List<AnalysisPosition> = emptyList(), val continuous: Boolean = false, val opponent: OpponentSearch? = null, val territory: Boolean = false)
+                               val history: List<AnalysisPosition> = emptyList(), val continuous: Boolean = false, val opponent: OpponentSearch? = null, val territory: Boolean = false, val deltaBefore: AnalysisPosition? = null)
     private data class Command(val request: Request, val epoch: Long, val cacheGeneration: Long, val cancelled: AtomicBoolean)
     private val lock = Any()
     private var epoch = 0L
@@ -134,7 +134,7 @@ class AnalysisController(
                             val restored = store.load(actualConfig)
                             if (publish(command) { it.copy(analyses = restored) }) loadedConfig = actualConfig
                         }
-                        val retainedKeys = request.history.map { it.key }.toSet() + request.position.key
+                        val retainedKeys = request.history.map { it.key }.toSet() + request.position.key + listOfNotNull(request.deltaBefore?.key)
                         fun cacheResult(state: EngineUiState, result: PositionAnalysis): Map<String, PositionAnalysis> {
                             val old = state.analyses[result.position.key]
                             if (old != null && !result.gameFinished && result.visits < old.visits) return state.analyses
@@ -163,6 +163,16 @@ class AnalysisController(
                         }
                         val opponent = request.opponent
                         if (opponent != null) {
+                            val before = request.deltaBefore
+                            if (before != null) {
+                                for (position in listOf(before, request.position)) {
+                                    if (state.value.analysisFor(position) != null) continue
+                                    activeSession.setPosition(position)
+                                    val analysis = activeSession.analyze(request.maxVisits, command.cancelled) ?: break
+                                    publish(command) { it.copy(analyses = cacheResult(it, analysis)) }
+                                }
+                                if (command.cancelled.get()) continue
+                            }
                             activeSession.resetForBenchmark(request.position)
                             val result = activeSession.analyzeOpponent(opponent.visits, command.cancelled, opponent.lastRank)
                             if (command.cancelled.get()) continue
@@ -254,11 +264,11 @@ class AnalysisController(
 
     fun setTarget(position: AnalysisPosition?, enabled: Boolean, visible: Boolean = true, retry: Boolean = false,
                   maxVisits: Int = 500, config: EngineConfig = EngineConfig(), history: List<AnalysisPosition> = emptyList(),
-                  continuous: Boolean = false, opponent: OpponentSearch? = null, territory: Boolean = false) {
+                  continuous: Boolean = false, opponent: OpponentSearch? = null, territory: Boolean = false, deltaBefore: AnalysisPosition? = null) {
         require(maxVisits in 1..MAX_VISITS)
         synchronized(lock) {
             enqueue(Request(position, enabled, visible, maxVisits, config,
-                history = history.distinctBy { it.key }, continuous = continuous, opponent = opponent, territory = territory), retry)
+                history = history.distinctBy { it.key }, continuous = continuous, opponent = opponent, territory = territory, deltaBefore = deltaBefore), retry)
         }
     }
 

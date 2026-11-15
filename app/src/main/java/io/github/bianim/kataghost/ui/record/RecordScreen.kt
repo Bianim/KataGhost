@@ -78,7 +78,7 @@ import io.github.bianim.kataghost.engine.EngineUiState
 import io.github.bianim.kataghost.engine.PASS
 
 @Composable
-fun RecordScreen(
+internal fun RecordScreen(
     state: RecordUiState,
     viewport: TreeViewportState,
     settings: AppPreferences,
@@ -93,6 +93,7 @@ fun RecordScreen(
     onNewGame: () -> Unit,
     modifier: Modifier = Modifier,
     territory: Boolean = false,
+    onDeltaFinished: (RecordUiState.Placement) -> Unit = {},
     onTerritory: () -> Unit = {},
     onCandidates: (Boolean) -> Unit = {},
 ) {
@@ -150,7 +151,7 @@ fun RecordScreen(
                 val rightMinimum = if (maxWidth < 680.dp) 280.dp else 320.dp
                 val boardSize = minOf(maxHeight, maxWidth - rightMinimum - 12.dp).coerceAtLeast(120.dp)
                 Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory, selectMove)
+                    RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory, selectMove, onDeltaFinished)
                     Column(Modifier.weight(1f).fillMaxSize()) {
                         TerritoryLocked(territory) { header(true) }
                         Box {
@@ -165,8 +166,8 @@ fun RecordScreen(
                         }
                     }
                         confirmMove()
-                        TerritoryLocked(territory) { Transport(state, settings.candidates, onCandidates) }
                         if (territory) TerritorySummary(board, engine, position.rules)
+                        else Transport(state, settings.candidates, if (settings.autoBlack xor settings.autoWhite) 2 else 1, onCandidates)
                         TerritoryLocked(territory, modifier = Modifier.weight(1f).fillMaxWidth()) { CurrentAnalysis(state, viewport, engine, settings, onRetry, Modifier.fillMaxSize()) }
                         TerritoryLocked(territory) { AnalysisTabs(state, insetBottom = false) }
                     }
@@ -190,14 +191,16 @@ fun RecordScreen(
                     }
                     BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                         val boardSize = minOf(maxWidth, (maxHeight).coerceAtLeast(0.dp))
-                        RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory, selectMove)
+                        RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory, selectMove, onDeltaFinished)
                     }
                     confirmMove()
-                    TerritoryLocked(territory) { Transport(state, settings.candidates, onCandidates) }
+                    Column(Modifier.fillMaxWidth().height(54.dp), verticalArrangement = Arrangement.Center) {
+                        if (territory) TerritorySummary(board, engine, position.rules)
+                        else Transport(state, settings.candidates, if (settings.autoBlack xor settings.autoWhite) 2 else 1, onCandidates)
+                    }
                     Box(Modifier.fillMaxWidth().heightIn(min = 100.dp)) {
                         TerritoryLocked(territory) { CurrentAnalysis(state, viewport, engine, settings, onRetry,
                             Modifier.fillMaxWidth().padding(horizontal = 8.dp).heightIn(max = if (state.tab == 0) 160.dp else 180.dp)) }
-                        if (territory) TerritorySummary(board, engine, position.rules)
                     }
                 }
                 TerritoryLocked(territory) { AnalysisTabs(state) }
@@ -207,24 +210,24 @@ fun RecordScreen(
 }
 
 @Composable
-private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: EngineUiState, settings: AppPreferences, manualInput: Boolean, modifier: Modifier, pendingMove: Int?, territory: Boolean, onSelectMove: (Int) -> Unit) {
+private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: EngineUiState, settings: AppPreferences, manualInput: Boolean, modifier: Modifier, pendingMove: Int?, territory: Boolean, onSelectMove: (Int) -> Unit, onDeltaFinished: (RecordUiState.Placement) -> Unit) {
     val placement = state.lastPlacement
     val position = state.position
-    val placedPosition = remember(state, placement) { position }
     val before = state.node.parentId?.let { engine.analysisFor(state.positionFor(it)) }
     val after = engine.analysisFor(position)
     var delta by remember(state, placement) { mutableStateOf<Float?>(null) }
     val animation = remember(state, placement) { androidx.compose.animation.core.Animatable(0f) }
-    androidx.compose.runtime.LaunchedEffect(placement, position, before != null && after != null) {
-        if (placement != null && position == placedPosition && before != null && after != null && delta == null) {
+    androidx.compose.runtime.LaunchedEffect(placement, position, territory, before != null && after != null) {
+        if (!territory && placement != null && position == placement?.position && before != null && after != null && (delta == null || animation.value > 0f)) {
             val difference = after.blackWinRate - before.blackWinRate
             delta = if (state.node.color == 1) difference else -difference
             animation.snapTo(1f)
             animation.animateTo(0f, androidx.compose.animation.core.tween(1300))
+            onDeltaFinished(placement)
         }
     }
     GoBoard(state, board, engine.analysisFor(state.position), settings.coordinates, settings.showCandidateMoves && !territory, modifier, pendingMove.takeUnless { territory }, onSelectMove, manualInput && !territory, engine.ownership.takeIf { territory },
-        delta.takeIf { !territory && state.preview == null && position == placedPosition }, animation.value)
+        delta.takeIf { !territory && state.preview == null && position == placement?.position }, animation.value)
 }
 
 @Composable
@@ -371,7 +374,7 @@ private fun PlayerDetails(state: RecordUiState, black: Boolean, automatic: Boole
 }
 
 @Composable
-private fun Transport(state: RecordUiState, candidates: Boolean, onCandidates: (Boolean) -> Unit) {
+private fun Transport(state: RecordUiState, candidates: Boolean, steps: Int, onCandidates: (Boolean) -> Unit) {
     val resources = LocalResources.current
     Row(Modifier.fillMaxWidth().height(48.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Row(Modifier.weight(1f).padding(start = 5.dp).testTag("move-indicator"), verticalAlignment = Alignment.CenterVertically) {
@@ -390,8 +393,8 @@ private fun Transport(state: RecordUiState, candidates: Boolean, onCandidates: (
             }
         }
         TransportButton(GoSymbol.First, resources.getString(R.string.first_move), !state.atStart, state::first)
-        TransportButton(GoSymbol.Previous, resources.getString(R.string.previous_move), !state.atStart, state::previous)
-        TransportButton(GoSymbol.Next, resources.getString(R.string.next_move), !state.atEnd, state::next)
+        TransportButton(GoSymbol.Previous, resources.getString(R.string.previous_move), !state.atStart) { state.previous(steps) }
+        TransportButton(GoSymbol.Next, resources.getString(R.string.next_move), !state.atEnd) { state.next(steps) }
         TransportButton(GoSymbol.Last, resources.getString(R.string.last_move), !state.atEnd, state::last)
     }
 }
@@ -428,15 +431,18 @@ private fun TerritoryLocked(active: Boolean, modifier: Modifier = Modifier, titl
         Box(modifier) { content() }
         return
     }
-    Box(modifier.clearAndSetSemantics {}) {
-        Box(Modifier.alpha(0f)) { content() }
-        Box(Modifier.matchParentSize().pointerInput(Unit) {
-            awaitPointerEventScope {
-                while (true) awaitPointerEvent().changes.forEach { it.consume() }
-            }
-        })
+    Box(modifier) {
+        Box(Modifier.clearAndSetSemantics {}) {
+            Box(Modifier.alpha(0f)) { content() }
+            Box(Modifier.matchParentSize().pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) awaitPointerEvent().changes.forEach { it.consume() }
+                }
+            })
+        }
         if (title) Text(LocalResources.current.getString(R.string.territory_estimate),
-            modifier = Modifier.align(Alignment.Center))
+            modifier = Modifier.align(Alignment.Center), style = androidx.compose.material3.MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold, color = GoColors.Ink)
     }
 }
 
@@ -470,16 +476,20 @@ private fun TerritorySummary(board: BoardSnapshot, engine: EngineUiState, rules:
     val resources = LocalResources.current
     val areaScoring = rules == io.github.bianim.kataghost.engine.GoRules.CHINESE
     val score = engine.territoryBlackScore?.let { if (areaScoring) it / 2 else it }
-    Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(if (score == null) resources.getString(R.string.analyzing)
             else if (kotlin.math.abs(score) < 0.005) resources.getString(R.string.draw)
             else resources.getString(if (areaScoring) R.string.territory_area_lead else R.string.territory_lead,
                 resources.getString(if (score > 0) R.string.black else R.string.white), kotlin.math.abs(score)),
-            fontWeight = FontWeight.SemiBold)
-        for ((color, captures) in listOf(1 to board.blackCaptures, 2 to board.whiteCaptures)) {
-            Text(resources.getString(R.string.territory_stones,
-                resources.getString(if (color == 1) R.string.black else R.string.white),
-                (0..360).count { board.color(it) == color }, captures), fontSize = 11.sp)
+            fontWeight = FontWeight.SemiBold, fontSize = 17.sp, lineHeight = 20.sp)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            for ((color, captures) in listOf(1 to board.blackCaptures, 2 to board.whiteCaptures)) {
+                Text(resources.getString(R.string.territory_stones,
+                    resources.getString(if (color == 1) R.string.black else R.string.white),
+                    (0..360).count { board.color(it) == color }, captures),
+                    modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, fontSize = 12.sp, lineHeight = 14.sp)
+            }
         }
     }
 }

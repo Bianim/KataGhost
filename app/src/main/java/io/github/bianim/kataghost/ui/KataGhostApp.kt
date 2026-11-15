@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import io.github.bianim.kataghost.engine.analysisFor
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -76,6 +77,13 @@ fun KataGhostApp() {
         recordNodes.map { record.positionFor(it.id) }.distinctBy { it.key }
     }
     val opponent = settings.effectiveOpponentSearch.takeIf { autoTurn }
+    val placement = record.lastPlacement
+    val deltaBefore = record.node.parentId?.takeIf { placement != null && position == placement.position && record.preview == null }
+        ?.let(record::positionFor)
+    val before = deltaBefore?.let { engineState.analysisFor(it) }
+    val after = engineState.analysisFor(position)
+    var deltaFinished by remember { mutableStateOf<io.github.bianim.kataghost.ui.record.RecordUiState.Placement?>(null) }
+    val waitForDelta = settings.waitForWinRateChange && deltaBefore != null
     val history = if (autoTurn || record.preview != null) emptyList() else recordHistory
     val snackbar = remember { SnackbarHostState() }
 
@@ -104,13 +112,13 @@ fun KataGhostApp() {
         }
     }
 
-    LaunchedEffect(position, history, settings.engineEnabled, settings.maxVisits, settings.engineConfig, visible, page, foreground, opponent, territory) {
+    LaunchedEffect(position, history, settings.engineEnabled, settings.maxVisits, settings.engineConfig, visible, page, foreground, opponent, territory, waitForDelta, deltaBefore) {
         engine.controller.setTarget(position, settings.engineEnabled || territory, visible, maxVisits = settings.maxVisits, config = settings.engineConfig,
-            history = history, continuous = !autoTurn, opponent = opponent, territory = territory)
+            history = history, continuous = !autoTurn, opponent = opponent, territory = territory, deltaBefore = deltaBefore.takeIf { waitForDelta })
     }
-    LaunchedEffect(autoTurn, visible, settings.engineEnabled, settings.maxVisits, settings.engineConfig, position, engineState.phase, engineState.opponentResult, opponent) {
+    LaunchedEffect(autoTurn, visible, settings.engineEnabled, settings.maxVisits, settings.engineConfig, position, engineState.phase, engineState.opponentResult, opponent, waitForDelta, deltaFinished, before != null && after != null) {
         val result = engineState.opponentResult?.takeIf { it.first == opponent }?.second
-        if (autoTurn && visible && settings.engineEnabled && engineState.phase == EnginePhase.READY &&
+        if ((!waitForDelta || deltaFinished === placement || before == null || after == null) && autoTurn && visible && settings.engineEnabled && engineState.phase == EnginePhase.READY &&
             engineState.config == settings.engineConfig && engineState.maxVisits == settings.maxVisits && result?.position == position && !result.gameFinished) {
             // Give navigation, stop and a newly selected position time to cancel this turn.
             delay(180)
@@ -155,6 +163,7 @@ fun KataGhostApp() {
                 }, onStart = { engine.controller.startBenchmark(settings.engineConfig, it) }, onCancel = engine.controller::cancelBenchmark,
                 onDiagnostics = { diagnosticsReturnPage = 3; page = 2 }, onBack = ::goBack)
             else -> RecordScreen(record, viewport, settings, engineState,
+                onDeltaFinished = { deltaFinished = it },
                 territory = territory, onTerritory = { territory = !territory },
                 onCandidates = { document.updatePreferences(settings.copy(candidates = it)) },
                 manualInput = !(autoTurn && settings.engineEnabled) && !document.busy,
@@ -166,7 +175,7 @@ fun KataGhostApp() {
                 onRetry = { engine.controller.setTarget(record.position, settings.engineEnabled, visible, retry = true, maxVisits = settings.maxVisits,
                     config = settings.engineConfig, history = history, continuous = !autoTurn, opponent = opponent) },
                 onSettings = { page = 1 }, onImport = onImport, onExport = onExport,
-                onNewGame = { record.newGame(); viewport.initialized = false },
+                onNewGame = { record.newGame(settings.whiteHandicap, settings.komi); viewport.initialized = false },
                 onResumeAutomatic = { record.resumeAutomatic(); document.updatePreferences(settings.copy(engineEnabled = true)) })
         }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = if (page == 1) 96.dp else 0.dp).navigationBarsPadding())

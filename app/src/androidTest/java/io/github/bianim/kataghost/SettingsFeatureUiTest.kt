@@ -77,6 +77,70 @@ class SettingsFeatureUiTest {
         play(point)
     }
 
+    @Test fun handicapPersistsAndTwoStepNavigationClampsAtTheEnds() {
+        openSettings()
+        ui.onNodeWithTag("wait-win-rate-change").assertIsOn().performClick()
+        ui.onNodeWithTag("auto-white").performClick()
+        ui.onNodeWithText("不让").performClick()
+        ui.onNodeWithText("让九子").performClick()
+        ui.onNodeWithTag("apply-settings").performClick()
+        val saved = AppPreferences.load(ui.activity)
+        assertEquals(9, saved.whiteHandicap)
+        assertFalse(saved.waitForWinRateChange)
+        ui.onNodeWithContentDescription("返回").performClick()
+        ui.onNodeWithContentDescription("更多选项").performClick()
+        ui.onNodeWithTag("menu-clear-board").performClick()
+        ui.onNodeWithTag("confirm-clear-board").performClick()
+        ui.runOnIdle {
+            val position = document.record.position
+            assertEquals(2, position.nextPlayer)
+            assertEquals(9, (0..360).count { BoardSnapshot.from(position).color(it) == 1 })
+            assertTrue(document.record.exportSgf().contains("HA[9]"))
+            assertTrue(document.record.play(BoardPoint.parse("Q5").index))
+            assertTrue(document.record.play(BoardPoint.parse("Q6").index))
+            assertTrue(document.record.play(BoardPoint.parse("Q7").index))
+        }
+        ui.onNodeWithContentDescription("上一手").performClick()
+        assertEquals(1, count())
+        ui.onNodeWithContentDescription("上一手").performClick()
+        assertEquals(0, count())
+        ui.onNodeWithContentDescription("下一手").performClick()
+        assertEquals(2, count())
+        ui.onNodeWithContentDescription("下一手").performClick()
+        assertEquals(3, count())
+        val board = ui.onNodeWithTag("go-board").getUnclippedBoundsInRoot()
+        val controls = ui.onNodeWithTag("territory").getUnclippedBoundsInRoot()
+        ui.onNodeWithTag("territory").performClick()
+        ui.onNodeWithText("地盘归属估计").assertIsDisplayed()
+        assertEquals(board, ui.onNodeWithTag("go-board").getUnclippedBoundsInRoot())
+        assertEquals(controls, ui.onNodeWithTag("territory-back").getUnclippedBoundsInRoot())
+        ui.onNodeWithTag("territory-back").performClick()
+    }
+
+    @Test fun aiSearchesWhileThePreviousMoveDeltaFades() {
+        ui.mainClock.autoAdvance = false
+        try {
+            ui.runOnIdle {
+                document.updatePreferences(AppPreferences(engineEnabled = true, autoWhite = true, maxVisits = 4))
+                assertTrue(document.record.play(BoardPoint.parse("Q16").index))
+            }
+            val deadline = android.os.SystemClock.elapsedRealtime() + 30000
+            while (engine.controller.state.value.opponentResult == null && android.os.SystemClock.elapsedRealtime() < deadline) {
+                ui.mainClock.advanceTimeByFrame()
+                Thread.sleep(10)
+            }
+            assertNotNull(engine.controller.state.value.opponentResult)
+            ui.mainClock.advanceTimeByFrame()
+            ui.onNodeWithTag("win-rate-delta").assertIsDisplayed()
+            assertEquals(1, count())
+            ui.mainClock.advanceTimeBy(1600)
+            waitForMoves(2)
+            assertEquals(2, count())
+        } finally {
+            ui.mainClock.autoAdvance = true
+        }
+    }
+
     @Test fun opponentBudgetPersistsIndependentlyOfAnalysis() {
         openSettings()
         ui.onNodeWithTag("opponent-visits-input").performScrollTo().performTextReplacement("64")

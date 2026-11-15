@@ -92,7 +92,8 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
     }
 
     /** All manual and automatic moves pass through the same official legality check. */
-    internal var lastPlacement by mutableStateOf<Any?>(null)
+    internal class Placement(val position: AnalysisPosition)
+    internal var lastPlacement by mutableStateOf<Placement?>(null)
         private set
 
     internal var onStonePlaced: (() -> Unit)? = null
@@ -123,13 +124,13 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
             selectedId = next.id; routeLeafId = next.id
         }
         autoPlayArmed = true; moveError = null
-        lastPlacement = if (point != PASS) Any() else null
+        lastPlacement = if (point != PASS) Placement(basePosition) else null
         if (point != PASS) onStonePlaced?.invoke()
         return true
     }
 
     fun resumeAutomatic() { if (preview == null) { autoPlayArmed = true; moveError = null } }
-    fun pauseAutomatic() { autoPlayArmed = false }
+    fun pauseAutomatic() { autoPlayArmed = false; lastPlacement = null }
     fun automaticFailed(message: Int) { pauseAutomatic(); moveError = message }
     fun startPreview(candidate: Candidate) {
         val moves = candidate.moves.take(minOf(MAX_PREVIEW_MOVES, (2000 - basePosition.moves.size).coerceAtLeast(0)))
@@ -141,12 +142,12 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
         pauseAutomatic(); moveError = null
         if (preview != null) previewStep = 0 else selectedId = route.first().id
     }
-    fun previous() {
+    fun previous(steps: Int = 1) {
         pauseAutomatic(); moveError = null
         if (preview != null) previewStep = (previewStep - 1).coerceAtLeast(0)
-        else node.parentId?.let { selectedId = it }
+        else repeat(steps) { node.parentId?.let { selectedId = it } }
     }
-    fun next() { pauseAutomatic(); advance() }
+    fun next(steps: Int = 1) { pauseAutomatic(); repeat(if (preview != null) 1 else steps) { advance() } }
     fun last() {
         pauseAutomatic(); moveError = null
         if (preview != null) previewStep = preview!!.moves.size else selectedId = routeLeafId
@@ -157,11 +158,22 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
         if (preview != null) previewStep++
         else route.getOrNull(route.indexOfFirst { it.id == selectedId } + 1)?.let { selectedId = it.id }
     }
-    fun newGame() {
+    fun newGame(whiteHandicap: Int = 0, komi: Float = this.komi) {
+        require(whiteHandicap in 0..9)
         clearTransient()
+        this.komi = if (whiteHandicap == 1) 0f else komi
         isDemo = false; recordName = ""
-        initialBlack = emptyList(); initialWhite = emptyList(); initialPlayer = 1
-        recordNodes.clear(); recordNodes += RecordNode("game-0", null, 0, null, 0, "main")
+        val corners = listOf(15 * 19 + 3, 3 * 19 + 15, 15 * 19 + 15, 3 * 19 + 3)
+        val sides = listOf(9 * 19 + 3, 9 * 19 + 15, 3 * 19 + 9, 15 * 19 + 9)
+        initialBlack = if (whiteHandicap < 2) emptyList() else buildList {
+            addAll(corners.take(whiteHandicap))
+            addAll(sides.take((whiteHandicap - 4).coerceAtLeast(0) / 2 * 2))
+            if (whiteHandicap >= 5 && whiteHandicap % 2 != 0) add(9 * 19 + 9)
+        }
+        initialWhite = emptyList()
+        initialPlayer = if (whiteHandicap >= 2) 2 else 1
+        val properties = if (whiteHandicap >= 2) mapOf("HA" to listOf(whiteHandicap.toString())) else emptyMap()
+        recordNodes.clear(); recordNodes += RecordNode("game-0", null, 0, null, 0, "main", properties = properties)
         selectedId = "game-0"; routeLeafId = "game-0"; autoPlayArmed = true
     }
     fun reset() {
@@ -172,7 +184,7 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
         selectedId = DemoRecord.INITIAL_NODE; routeLeafId = leafFrom(selectedId)
         pauseAutomatic()
     }
-    private fun clearTransient() { positions.clear(); preview = null; moveError = null; tab = 0 }
+    private fun clearTransient() { positions.clear(); preview = null; moveError = null; tab = 0; lastPlacement = null }
 
     fun gameWithRules(rules: GoRules, komi: Float) = SgfGame(nodes, rules, komi, initialBlack, initialWhite, initialPlayer)
     fun applyRules(rules: GoRules, komi: Float) {

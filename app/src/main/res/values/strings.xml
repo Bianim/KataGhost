@@ -254,4 +254,20 @@
     <string name="territory_lead">%1$s leads by %2$.2f points</string>
     <string name="territory_stones">%1$s · On board: %2$d · Captures: %3$d</string>
     <string name="territory_area_lead">%1$s leads by %2$.2f stones</string>
+    <string name="white_handicap">White handicap</string>
+    <string name="white_handicap_hint">Applies to new games. Handicap stones are placed on star points.</string>
+    <string name="wait_win_rate_change">Wait for win-rate change to fade</string>
+    <string name="wait_win_rate_change_hint">The AI can search while the previous move’s win-rate change is displayed.</string>
+    <string-array name="white_handicap_options">
+        <item>None</item>
+        <item>Black plays first</item>
+        <item>2 stones</item>
+        <item>3 stones</item>
+        <item>4 stones</item>
+        <item>5 stones</item>
+        <item>6 stones</item>
+        <item>7 stones</item>
+        <item>8 stones</item>
+        <item>9 stones</item>
+    </string-array>
 </resources>

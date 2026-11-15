@@ -21,6 +21,8 @@ data class AppPreferences(
     val komi: Float = 7.5f,
     val model: KataGoModel = KataGoModel.B6,
     val backend: EngineBackend = EngineBackend.AUTO,
+    val waitForWinRateChange: Boolean = true,
+    val whiteHandicap: Int = 0,
     val opponentSearch: OpponentSearch? = null,
 ) {
     val effectiveOpponentSearch get() = opponentSearch ?: OpponentSearch(maxVisits, 1, 1, 0)
@@ -40,6 +42,8 @@ data class AppPreferences(
             putInt("opponent_last", opponentSearch.lastRank)
             putInt("opponent_loss", opponentSearch.maxLoss)
         }
+        putBoolean("wait_for_win_rate_change", waitForWinRateChange)
+        putInt("white_handicap", whiteHandicap)
         putInt("max_visits", maxVisits)
         putBoolean("auto_black", autoBlack); putBoolean("auto_white", autoWhite)
         putString("rules", rules.id); putFloat("komi", komi)
@@ -56,6 +60,7 @@ data class AppPreferences(
                 runCatching { GoRules.fromId(p.getString("rules", "chinese")!!) }.getOrDefault(GoRules.CHINESE),
                 p.getFloat("komi", 7.5f).takeIf(::validKomi) ?: 7.5f,
                 KataGoModel.fromId(p.getString("model", null)), EngineBackend.fromId(p.getString("backend", null)),
+                p.getBoolean("wait_for_win_rate_change", true), p.getInt("white_handicap", 0).coerceIn(0, 9),
                 runCatching {
                     OpponentSearch(p.getInt("opponent_visits", 0).takeIf { it in 1..4096 } ?: 0,
                         p.getInt("opponent_first", 1), p.getInt("opponent_last", 1), p.getInt("opponent_loss", 0))
