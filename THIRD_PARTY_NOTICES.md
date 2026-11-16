@@ -5,6 +5,16 @@ weights and runtimes retain their respective licenses. MIT does not relicense
 those dependencies. License copies for bundled source are also packaged under
 `app/src/main/assets/licenses/` in the APK.
 
+## Application origin and attribution
+
+KataGhost is maintained by Bianim and derives from
+[KataDroid](https://github.com/zhzy0077/KataDroid). The original application's
+MIT copyright remains in `LICENSE`; Bianim's copyright covers Bianim's own
+contributions. Historical upstream screenshots, benchmarks and device audits
+are identified as such and are not validation of a KataGhost release.
+Keep legal notices here, in `LICENSE`, and in the APK's `licenses/` assets;
+do not replace third-party source notices with the maintainer's name.
+
 ## KataGo source
 
 The source subset in `third_party/katago/` is from KataGo v1.18.2, commit
@@ -47,18 +57,56 @@ of the bundled g170/CC0 models.
 
 - AndroidX, Jetpack Compose and Google LiteRT use Apache License 2.0. Their own
   dependency distributions may include additional third-party notices.
+  The actual LiteRT 2.2.0 AAR's `LICENSE` and `THIRD_PARTY_NOTICE.txt` are
+  preserved in `Android-DEPENDENCY-NOTICES.txt` in the APK's `licenses/`
+  assets, together with the other declared runtime dependencies' notices.
+  Byte-identical notice texts are included once. The upstream notice includes MPL-2.0 Eigen
+  source availability information and a broader dependency/build-tool inventory;
+  inclusion of a license in that inventory alone does not establish that the
+  corresponding component is linked into this APK.
+  LiteRT v2.2.0's pinned TensorFlow/XLA workspace selects Eigen source commit
+  `ea13a98decd497a8c5588fb5de71b57bcf10d864`, available with its MPL/BSD notices
+  from [Eigen's source repository](https://gitlab.com/libeigen/eigen/-/tree/ea13a98decd497a8c5588fb5de71b57bcf10d864).
+- LiteRT's transitive Play AI/Asset Delivery dependencies also use the
+  [Play Core SDK terms](https://developer.android.com/guide/playcore#license)
+  and [Google APIs terms](https://developers.google.com/terms), not just
+  Apache-2.0. The actual Play AAR terms and notices are included in
+  `Android-DEPENDENCY-NOTICES.txt`.
+- Transitive `play-services-basement:18.4.0` and `play-services-tasks:18.2.0`
+  declare the [Android SDK license](https://developer.android.com/studio/terms),
+  including its compatible-Android development restrictions; they are not
+  Apache-2.0 components merely because their own bundled third-party notices
+  contain open-source licenses. Google's integration guide permits including
+  their client libraries in Android applications; do not redistribute the full
+  Google Play services application or the SDK as an independent product.
 - The Gradle wrapper is from Gradle, under Apache License 2.0.
 - The NDK's LLVM C++ runtime uses Apache License 2.0 with LLVM exceptions.
 - `com.qualcomm.qti:qnn-runtime:2.47.0` declares the **Qualcomm AI Hub Model License**
-  in its Maven POM: [license PDF](https://softwarecenter.qualcomm.com/api/download/software/licenses/ai_model_hub/v1/LICENSE.pdf).
+  in its Maven POM, but the actual AAR includes an **AI Stack License** and a
+  separate third-party NOTICE. Copies are packaged as `Qualcomm-AI-Stack-LICENSE.pdf`
+  and `Qualcomm-QNN-NOTICE.txt` under the APK's `licenses/` assets. Section 1
+  permits distribution in object-code form incorporated into an application,
+  not standalone distribution. Preserve notices and comply with all remaining
+  restrictions. The actual QAIRT 2.47.0.260601 SDK's `LICENSE.pdf`, `NOTICE.txt`
+  and `QNN_NOTICE.txt` were checked against the AAR: the license and notices
+  are byte-identical to the copies above. This covers the matching SDK's
+  `libQnnIr.so` and `libQnnSaver.so`, rather than assuming terms from Maven metadata.
 - Optional Qualcomm compiler/dispatch and QAIRT SDK libraries downloaded by
-  `tools/prepare_npu.py` remain subject to the licenses delivered with those
-  distributions. The script pins their versions and checksums. Downloaded
-  vendor libraries are excluded from this Git repository.
+  `tools/prepare_npu.py` remain subject to their respective terms. Google's
+  LiteRT 2.2.0 Qualcomm plugin source uses Apache-2.0; associated QAIRT code
+  remains under the AI Stack License. The official JIT archive checksum was
+  verified against the pinned value. Downloaded vendor libraries are excluded
+  from this Git repository; do not redistribute the SDK as a standalone product.
 - Optional MediaTek LiteRT compiler/dispatch plugins are built from LiteRT's
   Apache-2.0 source. The upstream build downloads NeuroPilot SDK headers under
-  the SDK's own license agreement. The SDK and generated plugins are excluded
-  from Git; device-provided Neuron runtime libraries are not copied or bundled.
+  the SDK's own NeuroPilot Express SDK license agreement. The actual archive
+  selected by LiteRT 2.2.0 maps v8 headers to 8.0.10 and v9 headers to 9.0.3.
+  Section 1.1 permits royalty-and-fee-free use and object-code distribution
+  incorporated into applications used with MediaTek chipsets, not standalone
+  SDK distribution. Sections 2.2 and 2.3 require retaining proprietary notices
+  and not subjecting the SDK to open-source license terms. These vendor rights
+  are not replaced by this repository's MIT license. The SDK and generated
+  plugins are excluded from Git; device-provided Neuron libraries are not bundled.
 
 Consult the dependency distributions and their terms when redistributing a
 build containing vendor runtime binaries. This repository's MIT license applies

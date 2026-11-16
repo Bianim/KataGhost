@@ -6,7 +6,6 @@ on:
       tag:
         description: Existing published release tag
         required: true
-        default: v1.0.0
 
 permissions:
   contents: read

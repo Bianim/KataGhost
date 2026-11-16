@@ -1,5 +1,9 @@
 # Contributing
 
+<!-- current-version:start -->
+KataGhost: **v0.1.0** · Android versionCode: **1001** · [Changelog](CHANGELOG.md)
+<!-- current-version:end -->
+
 Use the toolchain in [README.md](README.md). A clean checkout builds a CPU-capable
 APK from the included models and source; local conversion environments and NPU
 plugins are optional. The application ID is `io.github.bianim.kataghost`. Android treats it as a
@@ -152,20 +156,41 @@ The workflow fails before building if any signing secret is missing. Release
 publishing uses the job's `GITHUB_TOKEN` with `contents: write`; no personal token
 is needed. Repository or organization policy must allow this permission.
 
-After committing and pushing the workflow and release changes:
+## Versioning with Changesets
 
-```bash
-git tag -a v1.0.0 -m 'KataGhost 1.0.0'
-git push origin v1.0.0
-```
+Node.js 24 and `npm ci` are required for release tooling only. The Android app
+is not an npm package; `private: true` prevents accidental npm publication.
 
-The APK's version name comes from the tag without `v`; its version code is
-`1000 + github.run_number`. Keep this workflow's identity and counter for future
-releases, and publish tags in version order. Re-running a failed job retains its
-version code. If an upload fails after creating a draft, delete that incomplete
-draft before retrying. A release that already exists is not overwritten; use a
-new tag for changes. These release-signed APKs cannot upgrade a debug-signed installation
-in place; export saved games before changing signing identities.
+1. Run `npm run changeset` and describe the user-visible changes (English and
+   Chinese summaries are recommended). Choose patch, minor or major.
+2. Run `npm run version`. Changesets updates `package.json` and `CHANGELOG.md`;
+   the version command increments `package.json`'s `versionCode` when the version
+   changes, and the synchronization step updates `package-lock.json`
+   and the marked current-version blocks in both READMEs and this guide.
+   Historical benchmarks, dependency versions and old changelog
+   entries retain their original versions.
+3. Run `npm test` and `npm run version:check`, then the Android checks above.
+4. Commit and push the release preparation, then tag that commit using
+   `v` followed by the version in `package.json` (for example `v0.1.0`).
+   Push that tag to trigger Release APK. `npm run version` does not commit,
+   create a tag or publish anything.
+
+Android reads `version` and `versionCode` directly from `package.json`. Each
+version change through `npm run version` increments the code once;
+`npm run version:sync` and workflow retries keep it
+unchanged. The initial KataGhost code is 1001. Before importing any existing
+KataGhost signing identity, ensure its previously published version codes are
+lower. Never reset the counter or release older branches with lower codes.
+The tag workflow checks the tag against package metadata and rejects stale
+release metadata before building. Its release notes come from the current
+Changesets changelog entry, extracted into a temporary file on the runner by
+`node tools/version.mjs notes`, without hard-coded model-release links or a
+duplicate release-notes file in the repository.
+
+If Changesets succeeds but synchronization fails, fix the reported problem and
+run `npm run version:sync`; do not add another changeset just to retry sync.
+Release-signed APKs cannot upgrade debug-signed or differently signed apps;
+export saved games before changing signing identities.
 
 An explicitly authorized replacement of an existing tag release must first put
 that GitHub release in draft. The official tag workflow can replace assets only

@@ -1,7 +1,13 @@
+import groovy.json.JsonSlurper
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
+
+val appVersion = JsonSlurper().parseText(
+    providers.fileContents(rootProject.layout.projectDirectory.file("package.json")).asText.get()
+) as Map<*, *>
 
 android {
     namespace = "io.github.bianim.kataghost"
@@ -14,8 +20,8 @@ android {
         applicationId = "io.github.bianim.kataghost"
         minSdk = 33
         targetSdk = 37
-        versionCode = providers.gradleProperty("releaseVersionCode").orNull?.toInt() ?: 1
-        versionName = providers.gradleProperty("releaseVersionName").orNull ?: "1.0"
+        versionCode = (appVersion["versionCode"] as Number).toInt()
+        versionName = appVersion["version"] as String
         // CPU support for phones, tablets and Android Studio virtual devices.
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
 

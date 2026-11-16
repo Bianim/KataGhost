@@ -1,8 +1,14 @@
 # KataGhost
 
+<!-- current-version:start -->
+KataGhost: **v0.1.0** · Android versionCode: **1001** · [Changelog](CHANGELOG.md)
+<!-- current-version:end -->
+
 KataGhost 由 Bianim 维护。下文设备验证、性能数据和版本升级说明来自上游 KataDroid
 的历史构建。KataGhost 发布版本使用自己的签名密钥，并需要独立验证。
 旧应用中的棋谱可导出为 SGF 后导入 KataGhost。
+
+版权、上游来源和依赖条款集中见[第三方声明](THIRD_PARTY_NOTICES.md)。
 
 [English](README.md) · [使用说明](docs/usage.zh-CN.md) · [技术架构](docs/katago-integration.md) · [模型与性能](docs/models-and-benchmarks.md)
 

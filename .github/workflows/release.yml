@@ -20,6 +20,16 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Check release metadata
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: node tools/version.mjs check "$RELEASE_TAG"
       - name: Free disk for native plugin build
         run: |
           set -euo pipefail
@@ -55,7 +65,6 @@ jobs:
             fi
           done
           echo "RELEASE_VERSION=${RELEASE_TAG#v}" >> "$GITHUB_ENV"
-          echo "RELEASE_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -84,9 +93,7 @@ jobs:
           rm -rf "$NPU_BAZEL_OUTPUT_ROOT"
       - name: Test and build release APK
         run: |
-          ./gradlew :app:testDebugUnitTest :app:lintRelease :app:assembleRelease \
-            -PreleaseVersionName="$RELEASE_VERSION" \
-            -PreleaseVersionCode="$RELEASE_VERSION_CODE" --console=plain
+          ./gradlew :app:testDebugUnitTest :app:lintRelease :app:assembleRelease --console=plain
       - name: Align, sign and verify APK
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -130,19 +137,7 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          cat > "$RUNNER_TEMP/release-notes.md" <<'NOTES'
-          Signed APKs for Android 13+: choose arm64-v8a for phones, x86_64 for emulators, or the universal APK containing both. ARMv7 is not supported.
-
-          Arm64 and universal builds include offline CPU inference, the bundled b6c96 and b10c128 models, Qualcomm LiteRT/QNN plugins and experimental patched MediaTek LiteRT/Neuron plugins. The x86_64 APK supports CPU inference. NPU execution depends on your SoC and vendor drivers; Auto falls back to CPU if NPU initialization fails. See docs/npu.md and README.md for setup and tested compatibility.
-
-          This build isolates Qualcomm and MediaTek compiler/dispatch libraries so LiteRT loads the selected vendor's NPU runtime. It includes full SGF history analysis followed by continuous selected-position search. Release APKs use increasing Android version codes and the same signing identity to support in-place upgrades.
-
-          This version adds optional `.kdmodel` import with checksums, portable-graph validation, CPU references and version-17 KataGo transformer output adapters. Download a model package from the optional transformer release, open Engine → Import model and select it. Bundled models and defaults remain unchanged. Manual GPU inference uses FP32 and CPU-reference checks. Both bundled models passed physical GPU correctness/native-postprocessing checks; remaining rank-five tensors block the tested transformer's LiteRT 2.2 GPU compilation. Optional transformer acceptance currently covers CPU references on three positions and eight symmetries; accelerated transformer qualification remains separate.
-
-          Optional model assets on the v1.1.0-rc.1 release: tf2-b10c384-s2941M-d5872M.kdmodel (~82 MiB), tf3-b10c512-s3203M-d5937M.kdmodel (~199 MiB), and tf3-b11c768-s11003M-d5973M-7gres.kdmodel (~528 MiB). Install the compatible APK first, download one package, then use Engine → Import model. Start with CPU. Raw upstream .bin.gz files require conversion before import. MODEL_SHA256SUMS verifies model downloads; KATAGO_MODEL_LICENSE.txt and each package manifest carry the upstream network license. The largest model needs substantially more runtime memory than its compressed download size.
-
-          Compatibility reports are welcome: include phone model, SoC, Android version, model, actual backend and benchmark visits/s. See README.md for measured results and reporting details.
-          NOTES
+          node tools/version.mjs notes > "$RUNNER_TEMP/release-notes.md"
           flags=()
           if [[ "$RELEASE_TAG" == *-* ]]; then
             flags+=(--prerelease)
@@ -157,7 +152,7 @@ jobs:
               --notes-file "$RUNNER_TEMP/release-notes.md" --target "$GITHUB_SHA"
           else
             gh release create "$RELEASE_TAG" dist/*.apk dist/SHA256SUMS \
-              --draft --verify-tag --title "KataGhost $RELEASE_TAG" --generate-notes \
+              --draft --verify-tag --title "KataGhost $RELEASE_TAG" \
               --notes-file "$RUNNER_TEMP/release-notes.md" "${flags[@]}"
           fi
           gh release edit "$RELEASE_TAG" --draft=false

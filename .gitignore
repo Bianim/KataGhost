@@ -17,6 +17,7 @@ models/
 __pycache__/
 *.py[cod]
 *.log
+node_modules/
 
 # Generated vendor runtimes (tools/prepare_npu.py)
 /app/src/main/jniLibs/

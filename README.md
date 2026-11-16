@@ -1,9 +1,16 @@
 # KataGhost
 
+<!-- current-version:start -->
+KataGhost: **v0.1.0** · Android versionCode: **1001** · [Changelog](CHANGELOG.md)
+<!-- current-version:end -->
+
 KataGhost is maintained by Bianim. Device validation, benchmarks and release
 upgrade details below describe historical upstream KataDroid builds. KataGhost
 releases use their own signing identity and require independent validation.
 Export games as SGF from the old app and import them into KataGhost.
+
+Copyright, upstream sources and dependency terms are centralized in
+[third-party notices](THIRD_PARTY_NOTICES.md).
 
 [简体中文](README.zh-CN.md) · [User guide](docs/android-ui.md) · [Architecture](docs/katago-integration.md) · [Performance](docs/models-and-benchmarks.md)
 
