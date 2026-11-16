@@ -144,15 +144,11 @@ fun KataGhostApp() {
             settlement = position
         }
     }
-    val finalScore = engineState.territoryBlackScore.takeIf { settling }
-    LaunchedEffect(settlement, finalScore) {
-        if (finalScore != null && finalScore != 0.0) {
-            playResultSound?.invoke((finalScore > 0) == (record.node.color == 1))
-        }
-    }
     if (settling) {
         io.github.bianim.kataghost.ui.record.SettlementDialog(
-            position, engineState, onClose = { settlement = null },
+            position, engineState,
+            onResultShown = { winner -> playResultSound?.invoke(winner == record.node.color) },
+            onClose = { settlement = null },
         )
     }
     LaunchedEffect(document.message) {

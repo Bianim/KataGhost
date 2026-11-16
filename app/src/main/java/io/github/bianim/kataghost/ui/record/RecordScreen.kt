@@ -555,14 +555,24 @@ private fun TerritorySummary(board: BoardSnapshot, engine: EngineUiState, rules:
 internal fun SettlementDialog(
     position: io.github.bianim.kataghost.engine.AnalysisPosition,
     engine: EngineUiState,
+    onResultShown: (Int) -> Unit,
     onClose: () -> Unit,
 ) {
     val resources = LocalResources.current
     val board = remember(position) { BoardSnapshot.from(position) }
-    val score = engine.territoryBlackScore
+    val score = engine.territoryBlackScore.takeIf { engine.positionKey == position.key }
     val winner = score?.let { if (it > 0) 1 else if (it < 0) 2 else 0 }
+    var laidOutWinner by remember(position) { mutableStateOf<Int?>(null) }
+    val currentOnResultShown by androidx.compose.runtime.rememberUpdatedState(onResultShown)
     val shape = RoundedCornerShape(28.dp)
     androidx.compose.ui.window.Dialog(onDismissRequest = onClose) {
+        androidx.compose.runtime.LaunchedEffect(winner, laidOutWinner) {
+            if (winner != null && winner != 0 && laidOutWinner == winner) {
+                androidx.compose.runtime.withFrameNanos { }
+                kotlinx.coroutines.delay(250)
+                currentOnResultShown(winner)
+            }
+        }
         Column(
             Modifier.fillMaxWidth().clip(shape).background(GoColors.Surface)
                 .clickable(onClickLabel = resources.getString(R.string.close_settlement), onClick = onClose)
@@ -587,7 +597,8 @@ internal fun SettlementDialog(
             }
             Text(headline, Modifier.fillMaxWidth().testTag("settlement-result"),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                fontSize = 24.sp, lineHeight = 30.sp, fontWeight = FontWeight.Bold, color = GoColors.Ink)
+                fontSize = 24.sp, lineHeight = 30.sp, fontWeight = FontWeight.Bold, color = GoColors.Ink,
+                onTextLayout = { laidOutWinner = winner })
             Column(Modifier.fillMaxWidth()) {
                 for ((color, captures) in listOf(1 to board.blackCaptures, 2 to board.whiteCaptures)) {
                     androidx.compose.material3.HorizontalDivider()
@@ -600,7 +611,7 @@ internal fun SettlementDialog(
                         Box(Modifier.size(12.dp).background(
                             if (color == 1) Color.Black else Color.White,
                             androidx.compose.foundation.shape.CircleShape,
-                        ))
+                        ).border(1.dp, if (color == 1) Color.Black else GoColors.Muted, androidx.compose.foundation.shape.CircleShape))
                         Text(resources.getString(R.string.territory_stones,
                             resources.getString(if (color == 1) R.string.black else R.string.white),
                             (0..360).count { board.color(it) == color }, captures),
