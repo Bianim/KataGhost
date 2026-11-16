@@ -2,7 +2,7 @@ package io.github.bianim.kataghost.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-/** The palette shared by the native UI and the HTML designs. */
+/** 原生界面共用的配色。 */
 object GoColors {
     val Background = Color(0xFFF5F7F0)
     val Surface = Color(0xFFFFFEF8)
