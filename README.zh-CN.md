@@ -1,7 +1,7 @@
 # KataGhost
 
 <!-- current-version:start -->
-KataGhost: **v0.1.0** · Android versionCode: **1001** · [Changelog](CHANGELOG.md)
+KataGhost: **v0.1.1** · Android versionCode: **1002** · [Changelog](CHANGELOG.md)
 <!-- current-version:end -->
 
 KataGhost 由 Bianim 维护。下文设备验证、性能数据和版本升级说明来自上游 KataDroid

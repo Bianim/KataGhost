@@ -1,5 +1,11 @@
 # kataghost
 
+## 0.1.1
+
+### Patch Changes
+
+- 完善虚招提示与终局结算
+
 ## 0.1.0
 
 ### Minor Changes

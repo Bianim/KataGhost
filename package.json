@@ -1,7 +1,7 @@
 {
   "name": "kataghost",
-  "version": "0.1.0",
-  "versionCode": 1001,
+  "version": "0.1.1",
+  "versionCode": 1002,
   "description": "Android Go board with offline KataGo analysis, variations and SGF editing.",
   "scripts": {
     "changeset": "changeset",

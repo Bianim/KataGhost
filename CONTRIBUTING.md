@@ -1,7 +1,7 @@
 # Contributing
 
 <!-- current-version:start -->
-KataGhost: **v0.1.0** · Android versionCode: **1001** · [Changelog](CHANGELOG.md)
+KataGhost: **v0.1.1** · Android versionCode: **1002** · [Changelog](CHANGELOG.md)
 <!-- current-version:end -->
 
 Use the toolchain in [README.md](README.md). A clean checkout builds a CPU-capable
