@@ -92,6 +92,7 @@ internal fun RecordScreen(
     onResumeAutomatic: () -> Unit,
     onNewGame: () -> Unit,
     modifier: Modifier = Modifier,
+    onPass: () -> Boolean = { state.play(PASS) },
     territory: Boolean = false,
     onDeltaFinished: (RecordUiState.Placement) -> Unit = {},
     onTerritory: () -> Unit = {},
@@ -118,9 +119,18 @@ internal fun RecordScreen(
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 TextButton(
                     enabled = !territory && manualInput && state.preview == null && board.isLegal(PASS),
-                    onClick = { if (state.play(PASS)) pendingMove = null },
+                    onClick = { if (onPass()) pendingMove = null },
                     modifier = Modifier.testTag("board-pass"),
-                ) { Text(LocalResources.current.getString(R.string.board_pass)) }
+                ) {
+                    val candidate = engine.analysisFor(position)?.candidates?.firstOrNull { it.move == PASS }
+                    Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) {
+                        if (manualInput && !territory && settings.showCandidateMoves &&
+                            state.preview == null && board.isLegal(PASS) && candidate != null) {
+                            androidx.compose.material3.Badge { Text(candidate.label) }
+                        }
+                    }
+                    Text(LocalResources.current.getString(R.string.board_pass))
+                }
             }
             androidx.compose.material3.Button(
                 enabled = !territory && manualInput && state.preview == null && pendingMove?.let(board::isLegal) == true,
@@ -230,13 +240,40 @@ private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: Engi
             } else {
                 String.format(locale, "%+.1f%%", sign * (after.blackWinRate - before.blackWinRate))
             }
+            if (placement.automaticPass) return@LaunchedEffect
             animation.snapTo(1f)
             animation.animateTo(0f, androidx.compose.animation.core.tween(1300))
             onDeltaFinished(placement)
         }
     }
+    val passAnimation = remember(state, placement) { androidx.compose.animation.core.Animatable(0f) }
+    androidx.compose.runtime.LaunchedEffect(placement, position) {
+        if (placement?.automaticPass == true && position == placement.position) {
+            passAnimation.snapTo(1f)
+            passAnimation.animateTo(0f, androidx.compose.animation.core.tween(1600))
+            onDeltaFinished(placement)
+        }
+    }
+    Box(modifier) {
     GoBoard(state, board, engine.analysisFor(state.position), settings.coordinates, settings.showCandidateMoves && !territory, modifier, pendingMove.takeUnless { territory }, onSelectMove, manualInput && !territory, engine.ownership.takeIf { territory },
-        delta.takeIf { !territory && state.preview == null && position == placement?.position }, animation.value)
+        delta.takeIf { placement?.automaticPass != true && !territory && state.preview == null && position == placement?.position }, animation.value)
+        if (passAnimation.value > 0f && placement?.position == position) {
+            val black = state.node.color == 1
+            Column(
+                Modifier.align(Alignment.Center)
+                    .offset(y = (-36 * (1f - passAnimation.value)).dp)
+                    .alpha(passAnimation.value)
+                    .background(if (black) Color.Black else Color.White, RoundedCornerShape(16.dp))
+                    .padding(horizontal = 18.dp, vertical = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                val color = if (black) Color.White else Color.Black
+                delta?.let { Text(it, color = color) }
+                Text(LocalResources.current.getString(if (black) R.string.black_pass_notice else R.string.white_pass_notice),
+                    color = color, fontSize = 20.sp)
+            }
+        }
+    }
 }
 
 @Composable
@@ -484,7 +521,7 @@ private fun BoardSnapshot.hasNoLibertiesAt(point: Int, player: Int): Boolean {
 }
 
 @Composable
-private fun TerritorySummary(board: BoardSnapshot, engine: EngineUiState, rules: io.github.bianim.kataghost.engine.GoRules) {
+private fun TerritorySummary(board: BoardSnapshot, engine: EngineUiState, rules: io.github.bianim.kataghost.engine.GoRules, final: Boolean = false) {
     val resources = LocalResources.current
     val areaScoring = rules == io.github.bianim.kataghost.engine.GoRules.CHINESE
     fun leadText(points: Double): String {
@@ -495,11 +532,12 @@ private fun TerritorySummary(board: BoardSnapshot, engine: EngineUiState, rules:
     }
     Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(engine.territoryEstimatedBlackLead?.let { resources.getString(R.string.territory_predicted, leadText(it)) }
+        if (!final) Text(engine.territoryEstimatedBlackLead?.let { resources.getString(R.string.territory_predicted, leadText(it)) }
             ?: resources.getString(R.string.analyzing),
             fontWeight = FontWeight.SemiBold, fontSize = 17.sp, lineHeight = 20.sp)
         engine.territoryBlackScore?.let {
-            Text(resources.getString(R.string.territory_if_scored_now, leadText(it)), fontSize = 12.sp, lineHeight = 14.sp, color = GoColors.Muted)
+            Text(if (final) leadText(it) else resources.getString(R.string.territory_if_scored_now, leadText(it)),
+                fontSize = if (final) 16.sp else 12.sp, color = GoColors.Muted)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             for ((color, captures) in listOf(1 to board.blackCaptures, 2 to board.whiteCaptures)) {
@@ -510,4 +548,48 @@ private fun TerritorySummary(board: BoardSnapshot, engine: EngineUiState, rules:
             }
         }
     }
+}
+
+@Composable
+internal fun SettlementDialog(
+    position: io.github.bianim.kataghost.engine.AnalysisPosition,
+    lastColor: Int,
+    engine: EngineUiState,
+    onClose: () -> Unit,
+) {
+    val resources = LocalResources.current
+    val board = remember(position) { BoardSnapshot.from(position) }
+    val score = engine.territoryBlackScore
+    val winner = score?.let { if (it > 0) 1 else if (it < 0) 2 else 0 }
+    androidx.compose.runtime.LaunchedEffect(position, winner) {
+        if (winner != null && winner != 0) {
+            val tone = runCatching { android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 65) }
+                .getOrNull() ?: return@LaunchedEffect
+            try {
+                tone.startTone(if (winner == lastColor) android.media.ToneGenerator.TONE_PROP_ACK
+                    else android.media.ToneGenerator.TONE_PROP_NACK, 250)
+                kotlinx.coroutines.delay(300)
+            } finally {
+                tone.release()
+            }
+        }
+    }
+    AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text(resources.getString(R.string.game_settlement)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(resources.getString(when (winner) {
+                    1 -> R.string.black_wins
+                    2 -> R.string.white_wins
+                    0 -> R.string.draw
+                    else -> R.string.analyzing
+                }), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                TerritorySummary(board, engine, position.rules, final = true)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onClose) { Text(resources.getString(android.R.string.ok)) }
+        },
+    )
 }

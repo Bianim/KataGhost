@@ -92,13 +92,13 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
     }
 
     /** All manual and automatic moves pass through the same official legality check. */
-    internal class Placement(val position: AnalysisPosition)
+    internal class Placement(val position: AnalysisPosition, val automaticPass: Boolean = false)
     internal var lastPlacement by mutableStateOf<Placement?>(null)
         private set
 
     internal var onStonePlaced: (() -> Unit)? = null
 
-    fun play(point: Int): Boolean {
+    fun play(point: Int, automatic: Boolean = false): Boolean {
         if (preview != null) return false
         val board = BoardSnapshot.from(basePosition)
         if (!board.isLegal(point)) {
@@ -124,7 +124,7 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
             selectedId = next.id; routeLeafId = next.id
         }
         autoPlayArmed = true; moveError = null
-        lastPlacement = if (point != PASS) Placement(basePosition) else null
+        lastPlacement = if (point != PASS || automatic) Placement(basePosition, point == PASS) else null
         if (point != PASS) onStonePlaced?.invoke()
         return true
     }

@@ -176,6 +176,46 @@ class SettingsFeatureUiTest {
         }
     }
 
+    @Test fun automaticPassBlocksManualPassUntilNoticeFinishes() {
+        val pass = io.github.bianim.kataghost.engine.PASS
+        ui.mainClock.autoAdvance = false
+        try {
+            ui.runOnUiThread { check(document.record.play(pass, automatic = true)) }
+            ui.mainClock.advanceTimeBy(500)
+            ui.onNodeWithText(ui.activity.getString(R.string.black_pass_notice)).assertIsDisplayed()
+            ui.onNodeWithTag("board-pass").assertIsNotEnabled()
+            ui.mainClock.advanceTimeBy(2000)
+            ui.onNodeWithText(ui.activity.getString(R.string.black_pass_notice)).assertDoesNotExist()
+            ui.onNodeWithTag("board-pass").assertIsEnabled()
+        } finally {
+            ui.mainClock.autoAdvance = true
+        }
+    }
+
+    @Test fun automaticSecondPassOpensSettlementOnceAfterNotice() {
+        val pass = io.github.bianim.kataghost.engine.PASS
+        val confirm = ui.activity.getString(R.string.confirm_game_end)
+        val settlement = ui.activity.getString(R.string.game_settlement)
+        ui.mainClock.autoAdvance = false
+        try {
+            ui.runOnUiThread {
+                check(document.record.play(pass))
+                check(document.record.play(pass, automatic = true))
+            }
+            ui.mainClock.advanceTimeBy(500)
+            ui.onNodeWithText(ui.activity.getString(R.string.white_pass_notice)).assertIsDisplayed()
+            ui.onNodeWithText(settlement).assertDoesNotExist()
+            ui.mainClock.advanceTimeBy(2000)
+            ui.onNodeWithText(confirm).assertDoesNotExist()
+            ui.onNodeWithText(settlement).assertIsDisplayed()
+        } finally {
+            ui.mainClock.autoAdvance = true
+        }
+        ui.onNodeWithText(ui.activity.getString(android.R.string.ok)).performClick()
+        ui.onNodeWithText(settlement).assertDoesNotExist()
+        ui.onNodeWithTag("board-pass").assertIsNotEnabled()
+    }
+
     @Test fun moreMenuOmitsPassAndAutomaticControls() {
         ui.runOnIdle { document.updatePreferences(document.preferences.copy(autoWhite = true)) }
         ui.onNodeWithTag("board-pass").assertIsDisplayed()

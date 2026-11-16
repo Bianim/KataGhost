@@ -274,4 +274,9 @@
     <string name="territory_if_scored_now">立即计分（含贴目及规则补偿）：%1$s</string>
     <string name="score_change_only">仅显示分差变化</string>
     <string name="score_change_only_hint">每次落子后显示预计分差的变化量。</string>
+    <string name="black_pass_notice">黑棋虚招</string>
+    <string name="white_pass_notice">白棋虚招</string>
+    <string name="confirm_game_end">结束对局？</string>
+    <string name="confirm_game_end_detail">双方连续虚招后，确认即可结算当前棋局。</string>
+    <string name="game_settlement">对局结算</string>
 </resources>

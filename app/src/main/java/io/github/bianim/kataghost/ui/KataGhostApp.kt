@@ -83,6 +83,10 @@ fun KataGhostApp() {
     val before = deltaBefore?.let { engineState.analysisFor(it) }
     val after = engineState.analysisFor(position)
     var deltaFinished by remember { mutableStateOf<io.github.bianim.kataghost.ui.record.RecordUiState.Placement?>(null) }
+    val waitForPass = placement?.automaticPass == true && position == placement.position && deltaFinished !== placement
+    var pendingEnd by remember(position) { mutableStateOf(false) }
+    var settlement by remember { mutableStateOf<io.github.bianim.kataghost.engine.AnalysisPosition?>(null) }
+    val settling = settlement == position
     val waitForDelta = settings.waitForWinRateChange && deltaBefore != null
     val history = if (autoTurn || record.preview != null) emptyList() else recordHistory
     val snackbar = remember { SnackbarHostState() }
@@ -112,13 +116,13 @@ fun KataGhostApp() {
         }
     }
 
-    LaunchedEffect(position, history, settings.engineEnabled, settings.maxVisits, settings.engineConfig, visible, page, foreground, opponent, territory, waitForDelta, deltaBefore) {
-        engine.controller.setTarget(position, settings.engineEnabled || territory, visible, maxVisits = settings.maxVisits, config = settings.engineConfig,
-            history = history, continuous = !autoTurn, opponent = opponent, territory = territory, deltaBefore = deltaBefore.takeIf { waitForDelta })
+    LaunchedEffect(position, history, settings.engineEnabled, settings.maxVisits, settings.engineConfig, visible, page, foreground, opponent, territory, settling, waitForDelta, waitForPass, deltaBefore) {
+        engine.controller.setTarget(position, settings.engineEnabled || territory || settling, visible, maxVisits = settings.maxVisits, config = settings.engineConfig,
+            history = history, continuous = !autoTurn, opponent = opponent.takeUnless { waitForPass }, territory = territory || settling, deltaBefore = deltaBefore.takeIf { waitForDelta || waitForPass })
     }
-    LaunchedEffect(autoTurn, visible, settings.engineEnabled, settings.maxVisits, settings.engineConfig, position, engineState.phase, engineState.opponentResult, opponent, waitForDelta, deltaFinished, before != null && after != null) {
+    LaunchedEffect(autoTurn, visible, settings.engineEnabled, settings.maxVisits, settings.engineConfig, position, engineState.phase, engineState.opponentResult, opponent, waitForDelta, waitForPass, deltaFinished, before != null && after != null) {
         val result = engineState.opponentResult?.takeIf { it.first == opponent }?.second
-        if ((!waitForDelta || deltaFinished === placement || before == null || after == null) && autoTurn && visible && settings.engineEnabled && engineState.phase == EnginePhase.READY &&
+        if (!waitForPass && (!waitForDelta || deltaFinished === placement || before == null || after == null) && autoTurn && visible && settings.engineEnabled && engineState.phase == EnginePhase.READY &&
             engineState.config == settings.engineConfig && engineState.maxVisits == settings.maxVisits && result?.position == position && !result.gameFinished) {
             // Give navigation, stop and a newly selected position time to cancel this turn.
             delay(180)
@@ -126,9 +130,36 @@ fun KataGhostApp() {
                 latestSettings.automatic(position.nextPlayer) && record.preview == null &&
                 latestSettings.effectiveOpponentSearch == opponent && engine.controller.state.value.opponentResult === engineState.opponentResult) {
                 val move = opponent?.selectMove(result, BoardSnapshot.from(position)::isLegal)
-                if (move == null || !record.play(move)) record.automaticFailed(R.string.auto_move_failed)
+                if (move == null || !record.play(move, automatic = true)) record.automaticFailed(R.string.auto_move_failed)
             }
         }
+    }
+    LaunchedEffect(placement, deltaFinished, position) {
+        if (placement?.automaticPass == true && deltaFinished === placement &&
+            position == placement.position && BoardSnapshot.from(position).finished) {
+            settlement = position
+        }
+    }
+    if (pendingEnd) {
+        AlertDialog(
+            onDismissRequest = { pendingEnd = false },
+            title = { Text(resources.getString(R.string.confirm_game_end)) },
+            text = { Text(resources.getString(R.string.confirm_game_end_detail)) },
+            dismissButton = {
+                TextButton(onClick = { pendingEnd = false }) { Text(resources.getString(android.R.string.cancel)) }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    pendingEnd = false
+                    if (record.play(io.github.bianim.kataghost.engine.PASS)) settlement = record.position
+                }) { Text(resources.getString(android.R.string.ok)) }
+            },
+        )
+    }
+    if (settling) {
+        io.github.bianim.kataghost.ui.record.SettlementDialog(
+            position, record.node.color, engineState, onClose = { settlement = null },
+        )
     }
     LaunchedEffect(document.message) {
         document.message?.let { snackbar.showSnackbar(it); document.message = null }
@@ -166,7 +197,14 @@ fun KataGhostApp() {
                 onDeltaFinished = { deltaFinished = it },
                 territory = territory, onTerritory = { territory = !territory },
                 onCandidates = { document.updatePreferences(settings.copy(candidates = it)) },
-                manualInput = !(autoTurn && settings.engineEnabled) && !document.busy,
+                onPass = {
+                    val pass = io.github.bianim.kataghost.engine.PASS
+                    if (position.moves.lastOrNull() == pass) {
+                        pendingEnd = true
+                        false
+                    } else record.play(pass)
+                },
+                manualInput = !waitForPass && !(autoTurn && settings.engineEnabled) && !document.busy,
                 onEngineEnabled = {
                     document.updatePreferences(settings.copy(engineEnabled = it))
                     engine.controller.setTarget(record.position, it, visible, maxVisits = settings.maxVisits, config = settings.engineConfig,

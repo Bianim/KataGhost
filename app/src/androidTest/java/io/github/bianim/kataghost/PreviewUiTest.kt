@@ -17,6 +17,9 @@ import io.github.bianim.kataghost.engine.BoardSnapshot
 import io.github.bianim.kataghost.engine.EngineUiState
 import io.github.bianim.kataghost.engine.PASS
 import io.github.bianim.kataghost.engine.PositionAnalysis
+import io.github.bianim.kataghost.ui.AppPreferences
+import io.github.bianim.kataghost.ui.record.RecordScreen
+import io.github.bianim.kataghost.ui.record.TreeViewportState
 import io.github.bianim.kataghost.ui.record.AnalysisPanel
 import io.github.bianim.kataghost.ui.record.BoardPoint
 import io.github.bianim.kataghost.ui.record.GoBoard
@@ -82,10 +85,22 @@ class PreviewUiTest {
         checkAndExit(moves)
     }
 
-    @Test fun passCandidateUsesTheSameLimitAndKeepsExitVisible() {
-        val pv = listOf(PASS) + moves
-        show(pv)
-        ui.onNodeWithTag("candidate-pass").performClick()
-        checkAndExit(pv)
+    @Test fun passCandidateIsShownInThePassButtonAndPlaysPass() {
+        record = RecordUiState().apply { newGame() }
+        val base = record.position
+        val analysis = PositionAnalysis(base, 100, 50f, 0f, 0f,
+            listOf(AnalysisCandidate("A", PASS, 100, 50f, 0f, listOf(PASS))), "CPU")
+        val engine = EngineUiState(analyses = mapOf(base.key to analysis))
+        ui.setContent {
+            KataGhostTheme {
+                RecordScreen(record, TreeViewportState(), AppPreferences(candidates = true), engine,
+                    manualInput = true, onEngineEnabled = {}, onRetry = {}, onSettings = {},
+                    onImport = {}, onExport = {}, onResumeAutomatic = {}, onNewGame = {})
+            }
+        }
+        ui.onNodeWithTag("board-pass").assert(
+            hasText("A")
+        ).performClick()
+        ui.runOnIdle { assertEquals(listOf(PASS), record.position.moves) }
     }
 }

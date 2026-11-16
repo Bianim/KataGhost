@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.sp
 import io.github.bianim.kataghost.engine.analysisFor
 import io.github.bianim.kataghost.engine.EnginePhase
 import io.github.bianim.kataghost.engine.EngineUiState
-import io.github.bianim.kataghost.engine.PASS
 import io.github.bianim.kataghost.ui.theme.GoColors
 import java.util.Locale
 import kotlin.math.abs
@@ -80,9 +79,6 @@ fun AnalysisPanel(state: RecordUiState, engine: EngineUiState, enabled: Boolean,
                 }
             }
             if (preview == null) {
-                val pass = analysis?.candidates?.firstOrNull { it.move == PASS }
-                if (showCandidates && pass != null) TextButton(onClick = { state.startPreview(Candidate(pass.label, pass.pv)) },
-                    modifier = Modifier.testTag("candidate-pass")) { Text(resources.getString(R.string.pass_preview, pass.label), fontSize = 10.sp) }
             } else {
                 HorizontalDivider(color = GoColors.Outline)
                 Row(Modifier.fillMaxWidth().heightIn(min = 36.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {

@@ -274,4 +274,9 @@
     <string name="territory_if_scored_now">Scored now (with komi and rule bonuses): %1$s</string>
     <string name="score_change_only">Score change only</string>
     <string name="score_change_only_hint">Show the estimated score change after every move.</string>
+    <string name="black_pass_notice">Black passes</string>
+    <string name="white_pass_notice">White passes</string>
+    <string name="confirm_game_end">End the game?</string>
+    <string name="confirm_game_end_detail">Both sides will have passed. Confirm to score the final board.</string>
+    <string name="game_settlement">Game result</string>
 </resources>
