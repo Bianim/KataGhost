@@ -1,6 +1,7 @@
 package io.github.bianim.kataghost.ui.record
 
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextButton
@@ -553,7 +554,6 @@ private fun TerritorySummary(board: BoardSnapshot, engine: EngineUiState, rules:
 @Composable
 internal fun SettlementDialog(
     position: io.github.bianim.kataghost.engine.AnalysisPosition,
-    lastColor: Int,
     engine: EngineUiState,
     onClose: () -> Unit,
 ) {
@@ -561,22 +561,15 @@ internal fun SettlementDialog(
     val board = remember(position) { BoardSnapshot.from(position) }
     val score = engine.territoryBlackScore
     val winner = score?.let { if (it > 0) 1 else if (it < 0) 2 else 0 }
-    androidx.compose.runtime.LaunchedEffect(position, winner) {
-        if (winner != null && winner != 0) {
-            val tone = runCatching { android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 65) }
-                .getOrNull() ?: return@LaunchedEffect
-            try {
-                tone.startTone(if (winner == lastColor) android.media.ToneGenerator.TONE_PROP_ACK
-                    else android.media.ToneGenerator.TONE_PROP_NACK, 250)
-                kotlinx.coroutines.delay(300)
-            } finally {
-                tone.release()
-            }
-        }
-    }
-    AlertDialog(
-        onDismissRequest = onClose,
-        title = {
+    val shape = RoundedCornerShape(28.dp)
+    androidx.compose.ui.window.Dialog(onDismissRequest = onClose) {
+        Column(
+            Modifier.fillMaxWidth().clip(shape).background(GoColors.Surface)
+                .clickable(onClickLabel = resources.getString(R.string.close_settlement), onClick = onClose)
+                .testTag("settlement-card").padding(horizontal = 24.dp, vertical = 18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
             val headline = when (winner) {
                 null -> resources.getString(R.string.analyzing)
                 0 -> resources.getString(R.string.draw)
@@ -594,14 +587,12 @@ internal fun SettlementDialog(
             }
             Text(headline, Modifier.fillMaxWidth().testTag("settlement-result"),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                fontWeight = FontWeight.Bold)
-        },
-        text = {
+                fontSize = 24.sp, lineHeight = 30.sp, fontWeight = FontWeight.Bold, color = GoColors.Ink)
             Column(Modifier.fillMaxWidth()) {
                 for ((color, captures) in listOf(1 to board.blackCaptures, 2 to board.whiteCaptures)) {
                     androidx.compose.material3.HorizontalDivider()
                     Row(
-                        Modifier.fillMaxWidth().padding(vertical = 12.dp)
+                        Modifier.fillMaxWidth().padding(vertical = 8.dp)
                             .testTag(if (color == 1) "settlement-black" else "settlement-white"),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -612,13 +603,11 @@ internal fun SettlementDialog(
                         ))
                         Text(resources.getString(R.string.territory_stones,
                             resources.getString(if (color == 1) R.string.black else R.string.white),
-                            (0..360).count { board.color(it) == color }, captures))
+                            (0..360).count { board.color(it) == color }, captures),
+                            fontSize = 13.sp, lineHeight = 18.sp, color = GoColors.Muted)
                     }
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onClose) { Text(resources.getString(android.R.string.ok)) }
-        },
-    )
+        }
+    }
 }

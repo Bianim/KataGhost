@@ -278,4 +278,5 @@
     <string name="white_pass_notice">White passes</string>
     <string name="settlement_area_win">%1$s wins by %2$s stones</string>
     <string name="settlement_territory_win">%1$s wins by %2$s points</string>
+    <string name="close_settlement">Close results</string>
 </resources>

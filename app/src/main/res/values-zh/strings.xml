@@ -278,4 +278,5 @@
     <string name="white_pass_notice">白棋虚招</string>
     <string name="settlement_area_win">%1$s胜 %2$s 子</string>
     <string name="settlement_territory_win">%1$s胜 %2$s 目</string>
+    <string name="close_settlement">关闭结算</string>
 </resources>

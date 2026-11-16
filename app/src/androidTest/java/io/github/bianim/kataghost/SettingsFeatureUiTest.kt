@@ -194,11 +194,11 @@ class SettingsFeatureUiTest {
 
     @Test fun manualSecondPassOpensResultWithSeparateStatisticsRows() {
         ui.onNodeWithTag("board-pass").performClick()
-        ui.onNodeWithTag("settlement-result").assertDoesNotExist()
+        ui.onNodeWithTag("settlement-result", useUnmergedTree = true).assertDoesNotExist()
         ui.onNodeWithTag("board-pass").performClick()
-        ui.onNodeWithTag("settlement-result").assertIsDisplayed()
-        val black = ui.onNodeWithTag("settlement-black").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        val white = ui.onNodeWithTag("settlement-white").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        ui.onNodeWithTag("settlement-result", useUnmergedTree = true).assertIsDisplayed()
+        val black = ui.onNodeWithTag("settlement-black", useUnmergedTree = true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val white = ui.onNodeWithTag("settlement-white", useUnmergedTree = true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         assertTrue(black.bottom <= white.top)
     }
 
@@ -213,14 +213,14 @@ class SettingsFeatureUiTest {
             }
             ui.mainClock.advanceTimeBy(500)
             ui.onNodeWithText(ui.activity.getString(R.string.white_pass_notice)).assertIsDisplayed()
-            ui.onNodeWithTag(settlement).assertDoesNotExist()
+            ui.onNodeWithTag(settlement, useUnmergedTree = true).assertDoesNotExist()
             ui.mainClock.advanceTimeBy(2000)
-            ui.onNodeWithTag(settlement).assertIsDisplayed()
+            ui.onNodeWithTag(settlement, useUnmergedTree = true).assertIsDisplayed()
         } finally {
             ui.mainClock.autoAdvance = true
         }
-        ui.onNodeWithText(ui.activity.getString(android.R.string.ok)).performClick()
-        ui.onNodeWithTag(settlement).assertDoesNotExist()
+        ui.onNodeWithTag("settlement-card").performClick()
+        ui.onNodeWithTag(settlement, useUnmergedTree = true).assertDoesNotExist()
         ui.onNodeWithTag("board-pass").assertIsNotEnabled()
     }
 

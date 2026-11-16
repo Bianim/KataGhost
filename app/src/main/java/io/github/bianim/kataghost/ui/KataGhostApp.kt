@@ -37,6 +37,7 @@ fun KataGhostApp() {
     val document: RecordViewModel = viewModel()
     val record = document.record
     val audioContext = androidx.compose.ui.platform.LocalContext.current
+    var playResultSound by remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
     DisposableEffect(audioContext, record) {
         val pool = android.media.SoundPool.Builder().setMaxStreams(1)
             .setAudioAttributes(android.media.AudioAttributes.Builder()
@@ -44,13 +45,17 @@ fun KataGhostApp() {
                 .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build())
             .build()
+        val stone = pool.load(audioContext, R.raw.stone_placement, 1)
+        val win = pool.load(audioContext, R.raw.settlement_win, 1)
+        val loss = pool.load(audioContext, R.raw.settlement_loss, 1)
         pool.setOnLoadCompleteListener { _, sample, status ->
-            if (status == 0) {
-                record.onStonePlaced = { pool.play(sample, 1f, 1f, 0, 0, 1f) }
+            if (sample == stone && status == 0) {
+                record.onStonePlaced = { pool.play(stone, 1f, 1f, 0, 0, 1f) }
             }
         }
-        pool.load(audioContext, io.github.bianim.kataghost.R.raw.stone_placement, 1)
+        playResultSound = { won -> pool.play(if (won) win else loss, 0.8f, 0.8f, 1, 0, 1f) }
         onDispose {
+            playResultSound = null
             record.onStonePlaced = null
             pool.setOnLoadCompleteListener(null)
             pool.release()
@@ -139,9 +144,15 @@ fun KataGhostApp() {
             settlement = position
         }
     }
+    val finalScore = engineState.territoryBlackScore.takeIf { settling }
+    LaunchedEffect(settlement, finalScore) {
+        if (finalScore != null && finalScore != 0.0) {
+            playResultSound?.invoke((finalScore > 0) == (record.node.color == 1))
+        }
+    }
     if (settling) {
         io.github.bianim.kataghost.ui.record.SettlementDialog(
-            position, record.node.color, engineState, onClose = { settlement = null },
+            position, engineState, onClose = { settlement = null },
         )
     }
     LaunchedEffect(document.message) {

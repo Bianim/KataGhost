@@ -111,3 +111,10 @@ of the bundled g170/CC0 models.
 Consult the dependency distributions and their terms when redistributing a
 build containing vendor runtime binaries. This repository's MIT license applies
 to KataGhost's own integration code, not to the vendor runtimes.
+
+
+### KataGhost settlement jingles
+
+Kenney, [85 Short music jingles](https://opengameart.org/content/85-short-music-jingles),
+[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
+The Android resources use `jingles_PIZZA02.ogg` (win) and `jingles_PIZZA03.ogg` (loss).
