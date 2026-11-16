@@ -59,6 +59,7 @@ fun SettingsScreen(
     var waitForWinRateChange by rememberSaveable(settings.waitForWinRateChange) { mutableStateOf(settings.waitForWinRateChange) }
     var handicapMenu by remember { mutableStateOf(false) }
     var coordinates by rememberSaveable(settings.coordinates) { mutableStateOf(settings.coordinates) }
+    var scoreChangeOnly by rememberSaveable(settings.scoreChangeOnly) { mutableStateOf(settings.scoreChangeOnly) }
     var candidates by rememberSaveable(settings.candidates) { mutableStateOf(settings.candidates) }
     val parsedKomi = draftKomi.toFloatOrNull()?.takeIf(::validKomi)
     val parsedVisits = draftVisits.toIntOrNull()?.takeIf { it in 1..MAX_VISITS }
@@ -75,7 +76,7 @@ fun SettingsScreen(
     val changed = (!followsAnalysis && opponent == null) || opponent != settings.opponentSearch || parsedKomi != komi || draftRule != rules || parsedVisits != settings.maxVisits ||
         autoBlack != settings.autoBlack || autoWhite != settings.autoWhite ||
         whiteHandicap != settings.whiteHandicap || waitForWinRateChange != settings.waitForWinRateChange ||
-        coordinates != settings.coordinates || candidates != settings.candidates
+        coordinates != settings.coordinates || candidates != settings.candidates || scoreChangeOnly != settings.scoreChangeOnly
 
     Column(Modifier.fillMaxSize().imePadding().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)).testTag("settings-screen")) {
         PageHeader(resources.getString(R.string.settings), onBack)
@@ -166,6 +167,8 @@ fun SettingsScreen(
                 SectionTitle(resources.getString(R.string.board_touch))
                 ToggleRow(resources.getString(R.string.coordinates), resources.getString(R.string.coordinates_hint), coordinates, { coordinates = it }, "setting-coordinates")
                 ToggleRow(resources.getString(R.string.candidates), resources.getString(R.string.candidates_hint), candidates, { candidates = it }, "setting-candidates")
+                ToggleRow(resources.getString(R.string.score_change_only), resources.getString(R.string.score_change_only_hint),
+                    scoreChangeOnly, { scoreChangeOnly = it }, "score-change-only")
                 Hint(resources.getString(R.string.candidate_color_hint))
                 HorizontalDivider(color = GoColors.Outline)
             }
@@ -187,7 +190,7 @@ fun SettingsScreen(
                     focus.clearFocus()
                     onApply(settings.copy(opponentSearch = opponent, maxVisits = checkNotNull(parsedVisits),
                         autoBlack = autoBlack, autoWhite = autoWhite, whiteHandicap = whiteHandicap,
-                        waitForWinRateChange = waitForWinRateChange, coordinates = coordinates, candidates = candidates),
+                        waitForWinRateChange = waitForWinRateChange, coordinates = coordinates, candidates = candidates, scoreChangeOnly = scoreChangeOnly),
                         draftRule, checkNotNull(parsedKomi))
                 }, enabled = changed && valid && !busy, modifier = Modifier.fillMaxWidth().testTag("apply-settings")) {
                     Text(resources.getString(if (busy) R.string.applying else if (changed) R.string.apply_settings else R.string.settings_saved))

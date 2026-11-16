@@ -256,8 +256,8 @@
     <string name="territory_area_lead">%1$s领先 %2$.2f 子</string>
     <string name="white_handicap">白方让子</string>
     <string name="white_handicap_hint">新建棋局时生效。让子摆在星位。</string>
-    <string name="wait_win_rate_change">胜率变化消失后落子</string>
-    <string name="wait_win_rate_change_hint">显示上一步胜率变化时，AI 可以继续思考。</string>
+    <string name="wait_win_rate_change">局势变化消失后落子</string>
+    <string name="wait_win_rate_change_hint">显示上一步局势变化时，AI 可以继续思考。</string>
     <string-array name="white_handicap_options">
         <item>不让</item>
         <item>让先</item>
@@ -272,4 +272,6 @@
     </string-array>
     <string name="territory_predicted">预计 %1$s</string>
     <string name="territory_if_scored_now">立即计分（含贴目及规则补偿）：%1$s</string>
+    <string name="score_change_only">仅显示分差变化</string>
+    <string name="score_change_only_hint">每次落子后显示预计分差的变化量。</string>
 </resources>

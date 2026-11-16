@@ -67,7 +67,7 @@ fun GoBoard(
     onSelectMove: (Int) -> Unit = {},
     manualInput: Boolean = true,
     ownership: List<Float>? = null,
-    winRateDelta: Float? = null,
+    positionDelta: String? = null,
     deltaAlpha: Float = 0f,
 ) {
     val resources = LocalResources.current
@@ -213,14 +213,14 @@ fun GoBoard(
                     },
             )
         }
-        if (winRateDelta != null && deltaAlpha > 0f) {
+        if (positionDelta != null && deltaAlpha > 0f) {
             state.node.point?.let { point ->
                 val black = state.node.color == 1
                 Box(Modifier.offset(
                     boardSize * ((41 + point.column * 31) / 640f) - 24.dp,
                     (boardSize * ((41 + point.row * 31) / 640f) - (12 + 26 * (1 - deltaAlpha)).dp).coerceAtLeast(0.dp))
                     .size(48.dp, 24.dp).alpha(deltaAlpha).testTag("win-rate-delta"), contentAlignment = Alignment.Center) {
-                    Text(String.format(resources.configuration.locales[0], "%+.1f%%", winRateDelta),
+                    Text(positionDelta,
                         color = if (black) Color.White else Color.Black,
                         modifier = Modifier.background(if (black) Color.Black else Color.White, RoundedCornerShape(8.dp))
                             .padding(horizontal = 4.dp), fontSize = 11.sp)

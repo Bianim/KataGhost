@@ -24,6 +24,7 @@ data class AppPreferences(
     val waitForWinRateChange: Boolean = true,
     val whiteHandicap: Int = 0,
     val opponentSearch: OpponentSearch? = null,
+    val scoreChangeOnly: Boolean = false,
 ) {
     val effectiveOpponentSearch get() = opponentSearch ?: OpponentSearch(maxVisits, 1, 1, 0)
     val engineConfig get() = EngineConfig(model, backend)
@@ -44,6 +45,7 @@ data class AppPreferences(
         }
         putBoolean("wait_for_win_rate_change", waitForWinRateChange)
         putInt("white_handicap", whiteHandicap)
+        putBoolean("score_change_only", scoreChangeOnly)
         putInt("max_visits", maxVisits)
         putBoolean("auto_black", autoBlack); putBoolean("auto_white", autoWhite)
         putString("rules", rules.id); putFloat("komi", komi)
@@ -64,7 +66,7 @@ data class AppPreferences(
                 runCatching {
                     OpponentSearch(p.getInt("opponent_visits", 0).takeIf { it in 1..4096 } ?: 0,
                         p.getInt("opponent_first", 1), p.getInt("opponent_last", 1), p.getInt("opponent_loss", 0))
-                }.getOrNull())
+                }.getOrNull(), scoreChangeOnly = p.getBoolean("score_change_only", false))
         }
     }
 }

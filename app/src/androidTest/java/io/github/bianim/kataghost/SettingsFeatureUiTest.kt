@@ -146,11 +146,15 @@ class SettingsFeatureUiTest {
         }
     }
 
-    @Test fun aiSearchesWhileThePreviousMoveDeltaFades() {
+    @Test fun aiSearchesWhileThePreviousMoveDeltaFades() = verifyDeltaFade(false)
+
+    @Test fun aiAlsoWaitsForScoreChangeToFade() = verifyDeltaFade(true)
+
+    private fun verifyDeltaFade(scoreOnly: Boolean) {
         ui.mainClock.autoAdvance = false
         try {
             ui.runOnIdle {
-                document.updatePreferences(AppPreferences(engineEnabled = true, autoWhite = true, maxVisits = 4))
+                document.updatePreferences(AppPreferences(engineEnabled = true, autoWhite = true, maxVisits = 4, scoreChangeOnly = scoreOnly))
                 assertTrue(document.record.play(BoardPoint.parse("Q16").index))
             }
             val deadline = android.os.SystemClock.elapsedRealtime() + 30000
@@ -161,6 +165,8 @@ class SettingsFeatureUiTest {
             assertNotNull(engine.controller.state.value.opponentResult)
             ui.mainClock.advanceTimeByFrame()
             ui.onNodeWithTag("win-rate-delta").assertIsDisplayed()
+            val delta = ui.onNodeWithTag("win-rate-delta", useUnmergedTree = true).onChildren().onFirst().fetchSemanticsNode().config[SemanticsProperties.Text].single().text
+            assertEquals(!scoreOnly, delta.endsWith("%"))
             assertEquals(1, count())
             ui.mainClock.advanceTimeBy(1600)
             waitForMoves(2)

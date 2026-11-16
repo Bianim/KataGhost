@@ -214,12 +214,22 @@ private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: Engi
     val position = state.position
     val before = state.node.parentId?.let { engine.analysisFor(state.positionFor(it)) }
     val after = engine.analysisFor(position)
-    var delta by remember(state, placement) { mutableStateOf<Float?>(null) }
+    var delta by remember(state, placement) { mutableStateOf<String?>(null) }
+    val locale = LocalResources.current.configuration.locales[0]
     val animation = remember(state, placement) { androidx.compose.animation.core.Animatable(0f) }
     androidx.compose.runtime.LaunchedEffect(placement, position, territory, before != null && after != null) {
         if (!territory && placement != null && position == placement?.position && before != null && after != null && (delta == null || animation.value > 0f)) {
-            val difference = after.blackWinRate - before.blackWinRate
-            delta = if (state.node.color == 1) difference else -difference
+            val sign = if (state.node.color == 1) 1 else -1
+            val saturated = before.blackWinRate >= 99.95f || before.blackWinRate <= 0.05f ||
+                after.blackWinRate >= 99.95f || after.blackWinRate <= 0.05f
+            delta = if (settings.scoreChangeOnly || saturated) {
+                val scale = if (position.rules == io.github.bianim.kataghost.engine.GoRules.CHINESE) 2 else 1
+                val change = sign * (after.blackLead - before.blackLead) / scale
+                val format = java.text.NumberFormat.getNumberInstance(locale).apply { maximumFractionDigits = 2 }
+                if (kotlin.math.abs(change) < 0.005f) "0" else (if (change > 0) "+" else "") + format.format(change)
+            } else {
+                String.format(locale, "%+.1f%%", sign * (after.blackWinRate - before.blackWinRate))
+            }
             animation.snapTo(1f)
             animation.animateTo(0f, androidx.compose.animation.core.tween(1300))
             onDeltaFinished(placement)
