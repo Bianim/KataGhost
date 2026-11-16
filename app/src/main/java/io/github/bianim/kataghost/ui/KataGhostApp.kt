@@ -84,7 +84,6 @@ fun KataGhostApp() {
     val after = engineState.analysisFor(position)
     var deltaFinished by remember { mutableStateOf<io.github.bianim.kataghost.ui.record.RecordUiState.Placement?>(null) }
     val waitForPass = placement?.automaticPass == true && position == placement.position && deltaFinished !== placement
-    var pendingEnd by remember(position) { mutableStateOf(false) }
     var settlement by remember { mutableStateOf<io.github.bianim.kataghost.engine.AnalysisPosition?>(null) }
     val settling = settlement == position
     val waitForDelta = settings.waitForWinRateChange && deltaBefore != null
@@ -140,22 +139,6 @@ fun KataGhostApp() {
             settlement = position
         }
     }
-    if (pendingEnd) {
-        AlertDialog(
-            onDismissRequest = { pendingEnd = false },
-            title = { Text(resources.getString(R.string.confirm_game_end)) },
-            text = { Text(resources.getString(R.string.confirm_game_end_detail)) },
-            dismissButton = {
-                TextButton(onClick = { pendingEnd = false }) { Text(resources.getString(android.R.string.cancel)) }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    pendingEnd = false
-                    if (record.play(io.github.bianim.kataghost.engine.PASS)) settlement = record.position
-                }) { Text(resources.getString(android.R.string.ok)) }
-            },
-        )
-    }
     if (settling) {
         io.github.bianim.kataghost.ui.record.SettlementDialog(
             position, record.node.color, engineState, onClose = { settlement = null },
@@ -198,11 +181,9 @@ fun KataGhostApp() {
                 territory = territory, onTerritory = { territory = !territory },
                 onCandidates = { document.updatePreferences(settings.copy(candidates = it)) },
                 onPass = {
-                    val pass = io.github.bianim.kataghost.engine.PASS
-                    if (position.moves.lastOrNull() == pass) {
-                        pendingEnd = true
-                        false
-                    } else record.play(pass)
+                    record.play(io.github.bianim.kataghost.engine.PASS).also { played ->
+                        if (played && BoardSnapshot.from(record.position).finished) settlement = record.position
+                    }
                 },
                 manualInput = !waitForPass && !(autoTurn && settings.engineEnabled) && !document.busy,
                 onEngineEnabled = {

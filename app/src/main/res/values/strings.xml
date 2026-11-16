@@ -276,7 +276,6 @@
     <string name="score_change_only_hint">Show the estimated score change after every move.</string>
     <string name="black_pass_notice">Black passes</string>
     <string name="white_pass_notice">White passes</string>
-    <string name="confirm_game_end">End the game?</string>
-    <string name="confirm_game_end_detail">Both sides will have passed. Confirm to score the final board.</string>
-    <string name="game_settlement">Game result</string>
+    <string name="settlement_area_win">%1$s wins by %2$s stones</string>
+    <string name="settlement_territory_win">%1$s wins by %2$s points</string>
 </resources>

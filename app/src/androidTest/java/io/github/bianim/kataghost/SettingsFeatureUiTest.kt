@@ -192,10 +192,19 @@ class SettingsFeatureUiTest {
         }
     }
 
+    @Test fun manualSecondPassOpensResultWithSeparateStatisticsRows() {
+        ui.onNodeWithTag("board-pass").performClick()
+        ui.onNodeWithTag("settlement-result").assertDoesNotExist()
+        ui.onNodeWithTag("board-pass").performClick()
+        ui.onNodeWithTag("settlement-result").assertIsDisplayed()
+        val black = ui.onNodeWithTag("settlement-black").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val white = ui.onNodeWithTag("settlement-white").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        assertTrue(black.bottom <= white.top)
+    }
+
     @Test fun automaticSecondPassOpensSettlementOnceAfterNotice() {
         val pass = io.github.bianim.kataghost.engine.PASS
-        val confirm = ui.activity.getString(R.string.confirm_game_end)
-        val settlement = ui.activity.getString(R.string.game_settlement)
+        val settlement = "settlement-result"
         ui.mainClock.autoAdvance = false
         try {
             ui.runOnUiThread {
@@ -204,15 +213,14 @@ class SettingsFeatureUiTest {
             }
             ui.mainClock.advanceTimeBy(500)
             ui.onNodeWithText(ui.activity.getString(R.string.white_pass_notice)).assertIsDisplayed()
-            ui.onNodeWithText(settlement).assertDoesNotExist()
+            ui.onNodeWithTag(settlement).assertDoesNotExist()
             ui.mainClock.advanceTimeBy(2000)
-            ui.onNodeWithText(confirm).assertDoesNotExist()
-            ui.onNodeWithText(settlement).assertIsDisplayed()
+            ui.onNodeWithTag(settlement).assertIsDisplayed()
         } finally {
             ui.mainClock.autoAdvance = true
         }
         ui.onNodeWithText(ui.activity.getString(android.R.string.ok)).performClick()
-        ui.onNodeWithText(settlement).assertDoesNotExist()
+        ui.onNodeWithTag(settlement).assertDoesNotExist()
         ui.onNodeWithTag("board-pass").assertIsNotEnabled()
     }
 

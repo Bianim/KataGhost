@@ -276,7 +276,6 @@
     <string name="score_change_only_hint">每次落子后显示预计分差的变化量。</string>
     <string name="black_pass_notice">黑棋虚招</string>
     <string name="white_pass_notice">白棋虚招</string>
-    <string name="confirm_game_end">结束对局？</string>
-    <string name="confirm_game_end_detail">双方连续虚招后，确认即可结算当前棋局。</string>
-    <string name="game_settlement">对局结算</string>
+    <string name="settlement_area_win">%1$s胜 %2$s 子</string>
+    <string name="settlement_territory_win">%1$s胜 %2$s 目</string>
 </resources>

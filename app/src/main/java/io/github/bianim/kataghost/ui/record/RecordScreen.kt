@@ -521,7 +521,7 @@ private fun BoardSnapshot.hasNoLibertiesAt(point: Int, player: Int): Boolean {
 }
 
 @Composable
-private fun TerritorySummary(board: BoardSnapshot, engine: EngineUiState, rules: io.github.bianim.kataghost.engine.GoRules, final: Boolean = false) {
+private fun TerritorySummary(board: BoardSnapshot, engine: EngineUiState, rules: io.github.bianim.kataghost.engine.GoRules) {
     val resources = LocalResources.current
     val areaScoring = rules == io.github.bianim.kataghost.engine.GoRules.CHINESE
     fun leadText(points: Double): String {
@@ -532,12 +532,12 @@ private fun TerritorySummary(board: BoardSnapshot, engine: EngineUiState, rules:
     }
     Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        if (!final) Text(engine.territoryEstimatedBlackLead?.let { resources.getString(R.string.territory_predicted, leadText(it)) }
+        Text(engine.territoryEstimatedBlackLead?.let { resources.getString(R.string.territory_predicted, leadText(it)) }
             ?: resources.getString(R.string.analyzing),
             fontWeight = FontWeight.SemiBold, fontSize = 17.sp, lineHeight = 20.sp)
         engine.territoryBlackScore?.let {
-            Text(if (final) leadText(it) else resources.getString(R.string.territory_if_scored_now, leadText(it)),
-                fontSize = if (final) 16.sp else 12.sp, color = GoColors.Muted)
+            Text(resources.getString(R.string.territory_if_scored_now, leadText(it)),
+                fontSize = 12.sp, color = GoColors.Muted)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             for ((color, captures) in listOf(1 to board.blackCaptures, 2 to board.whiteCaptures)) {
@@ -576,16 +576,45 @@ internal fun SettlementDialog(
     }
     AlertDialog(
         onDismissRequest = onClose,
-        title = { Text(resources.getString(R.string.game_settlement)) },
+        title = {
+            val headline = when (winner) {
+                null -> resources.getString(R.string.analyzing)
+                0 -> resources.getString(R.string.draw)
+                else -> {
+                    val areaScoring = position.rules == io.github.bianim.kataghost.engine.GoRules.CHINESE
+                    val margin = kotlin.math.abs(checkNotNull(score)) / if (areaScoring) 2 else 1
+                    val format = java.text.NumberFormat.getNumberInstance(resources.configuration.locales[0])
+                        .apply { maximumFractionDigits = 2 }
+                    val side = resources.getString(if (winner == 1) R.string.black else R.string.white)
+                    resources.getString(
+                        if (areaScoring) R.string.settlement_area_win else R.string.settlement_territory_win,
+                        side, format.format(margin),
+                    )
+                }
+            }
+            Text(headline, Modifier.fillMaxWidth().testTag("settlement-result"),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                fontWeight = FontWeight.Bold)
+        },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(resources.getString(when (winner) {
-                    1 -> R.string.black_wins
-                    2 -> R.string.white_wins
-                    0 -> R.string.draw
-                    else -> R.string.analyzing
-                }), fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                TerritorySummary(board, engine, position.rules, final = true)
+            Column(Modifier.fillMaxWidth()) {
+                for ((color, captures) in listOf(1 to board.blackCaptures, 2 to board.whiteCaptures)) {
+                    androidx.compose.material3.HorizontalDivider()
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 12.dp)
+                            .testTag(if (color == 1) "settlement-black" else "settlement-white"),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Box(Modifier.size(12.dp).background(
+                            if (color == 1) Color.Black else Color.White,
+                            androidx.compose.foundation.shape.CircleShape,
+                        ))
+                        Text(resources.getString(R.string.territory_stones,
+                            resources.getString(if (color == 1) R.string.black else R.string.white),
+                            (0..360).count { board.color(it) == color }, captures))
+                    }
+                }
             }
         },
         confirmButton = {
