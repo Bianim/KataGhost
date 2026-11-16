@@ -112,6 +112,7 @@ Consult the dependency distributions and their terms when redistributing a
 build containing vendor runtime binaries. This repository's MIT license applies
 to KataGhost's own integration code, not to the vendor runtimes.
 
+
 ### KataGhost settlement jingles
 
 Kenney, [85 Short music jingles](https://opengameart.org/content/85-short-music-jingles),
