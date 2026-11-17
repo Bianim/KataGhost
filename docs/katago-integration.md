@@ -6,7 +6,7 @@ move picker or a handwritten approximation of its rules.
 
 ```mermaid
 flowchart TD
-    UI[Compose board, settings, chart and variations] --> Record[RecordViewModel and SGF tree]
+    UI[Compose board, settings and variations] --> Record[RecordViewModel and SGF tree]
     Record --> Position[History, setup, player, rules and komi]
     Position --> Controller[AnalysisController: serialized worker and cancellation]
     Controller --> JNI[JNI adapter]
@@ -22,7 +22,7 @@ flowchart TD
 
 | Path | Responsibility |
 | --- | --- |
-| `ui/record/` | Board input/drawing, candidate color, chart, game tree and document state |
+| `ui/record/` | Board input/drawing, candidate color, move navigation, game tree and document state |
 | `ui/` | Navigation, settings draft, preferences and engine selection |
 | `sgf/` | SGF codec, metadata and branch conversion |
 | `engine/AnalysisController.kt` | Serialized lifecycle, progressive search, cancellation and publication |
@@ -85,12 +85,9 @@ retains every requested position even for larger variation trees.
 
 Candidate color uses current-player win-rate loss from the best evaluated legal
 candidate (including pass), with a 2-point green plateau and 5/10-point yellow/red
-anchors. It does not stretch just A/B/C across all colors. The win-rate graph uses
-Black's perspective. TalkBack descriptions include both win rate and relative loss.
-
-The chart retains the whole selected continuation, including moves after the
-current selection. Same-hand SGF comment/PL nodes keep the selected position
-exact. Unanalyzed nodes are navigable but are not interpolated as known values.
+anchors. The analysis panel shows White's win rate when only Black is automated,
+and Black's win rate otherwise. Same-hand SGF comment and PL nodes preserve the
+selected position, and unanalyzed nodes remain navigable.
 
 English is the default Android resource locale; `values-zh` supplies Chinese.
 Compose reads `LocalResources` so configuration changes update the text.

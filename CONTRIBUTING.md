@@ -4,7 +4,7 @@
 KataGhost: **v0.1.1** · Android versionCode: **1002** · [Changelog](CHANGELOG.md)
 <!-- current-version:end -->
 
-Use the toolchain in [README.md](README.md). A clean checkout builds a CPU-capable
+Use the toolchain in [English README](README.en.md). A clean checkout builds a CPU-capable
 APK from the included models and source; local conversion environments and NPU
 plugins are optional. The application ID is `io.github.bianim.kataghost`. Android treats it as a
 separate app from upstream `io.github.zhzy0077.katadroid` builds. Export existing games
@@ -37,7 +37,7 @@ adb -s <avd-serial> shell am instrument -w -r \
 
 Tests cover official numerical references, rules/legality, SGF round trips,
 search cancellation, model/backend cache separation, automatic play, English and
-Chinese UI flows, touch offsets, landscape layout and chart navigation. Locale
+Chinese UI flows, move confirmation, landscape layout and move navigation. Locale
 rules change only this app's language and restore it after each test. NPU tests
 skip on CPU-only environments; a skip is not a successful NPU validation.
 
@@ -59,7 +59,7 @@ sources in `design/icon/` and the byte-identical KataGo subset in `third_party/`
 
 Before a release, build from a clean checkout, run the checks and AVD tests,
 update the [user guide](docs/android-ui.md), model/architecture documentation and
-sanitized [performance samples](docs/benchmarks/), and refresh both language
+sanitized performance samples, and refresh both language
 screenshots. Screenshots must show the app only; exclude notification contents,
 file-picker paths, accounts, device serials and other applications. State the
 actual model, backend, visit budget and measurement method with performance data.

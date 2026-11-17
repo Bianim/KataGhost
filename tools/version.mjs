@@ -40,7 +40,7 @@ export function synchronize(root, mode, tag) {
   const outputs = new Map([
     ['package-lock.json', `${JSON.stringify(lock, null, 2)}\n`],
   ]);
-  for (const name of ['README.md', 'README.zh-CN.md', 'CONTRIBUTING.md']) {
+  for (const name of ['README.md', 'README.en.md', 'CONTRIBUTING.md']) {
     const source = read(name);
     const pattern = /<!-- current-version:start -->[\s\S]*?<!-- current-version:end -->/g;
     if ([...source.matchAll(pattern)].length !== 1) throw new Error(`Missing version block: ${name}`);

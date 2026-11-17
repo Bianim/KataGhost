@@ -101,14 +101,6 @@ optimization report. The exporter's default behavior stays unchanged.
 
 ## Optional transformer packages
 
-Download verified `.kdmodel` assets from
-[Upstream KataDroid v1.1.0-rc.1](https://github.com/zhzy0077/KataDroid/releases/tag/v1.1.0-rc.1).
-Install its compatible APK, download one package and select **Engine → Import
-model**. Start with CPU. `MODEL_SHA256SUMS` verifies downloads. Each package
-manifest embeds the official network license. Earlier app releases do not have
-this importer.
-
-
 Settings → **Engines & models → Import model package** accepts a `.kdmodel` ZIP.
 Importing adds an optional model to the catalog; selecting it is a separate action.
 The two bundled models and the default configuration stay unchanged. Installed

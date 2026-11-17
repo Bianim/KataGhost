@@ -10,7 +10,7 @@
     <string name="auto_white">Play White automatically</string>
     <string name="katago_black">KataGo plays Black</string>
     <string name="katago_white">KataGo plays White</string>
-    <string name="automatic_hint">Automatic moves follow the KataGo switch. Reviewing the game pauses them; resume from the menu. Enable both colors for self-play.</string>
+    <string name="automatic_hint">Automatic moves follow the KataGo switch. Reviewing the game pauses them; resume from the board. Enable both colors for self-play.</string>
     <string name="rules_komi">Rules &amp; komi</string>
     <string name="komi_label">Komi (positive, negative or decimal)</string>
     <string name="points">points</string>

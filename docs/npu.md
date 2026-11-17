@@ -22,23 +22,11 @@ See [third-party terms](../THIRD_PARTY_NOTICES.md) before distributing their bin
 
 ## Combined-vendor plugin selection
 
-LiteRT 2.2.0 scans the dispatch directory and chooses the first matching library.
-The v1.0.0 combined APK could therefore load MediaTek dispatch on a Qualcomm
-phone, fail to initialize Neuron, and expose `HostMemory` buffers. The strict
-buffer validation correctly rejected that execution.
-
-The source fix prepares a vendor-specific directory with symlinks to that vendor's
-packaged compiler/dispatch libraries, plus QNN support libraries on Qualcomm.
-Both LiteRT plugin-directory options use this directory. Compiler loading uses the
-original extracted library path; links are repaired after an APK update. Packaged
-native files stay intact. NPU buffers and native delegation still require validation.
-The release-signed 1.0.1 candidate passed the numerical, both-model search,
-cancellation/restart and timed-search suites on Snapdragon 8 Elite and Dimensity
-9300. The official release workflow subsequently rebuilt the amended v1.0.0 (version
-code 1003). Its downloaded arm64 APK passed the same suites, full 51-position
-history/continuous analysis and repeated production benchmarks on both SoCs.
-See [official validation](benchmarks/amended-v1.0.0-validation.json). Sanitized evidence is in
-[vendor-isolation-validation.json](benchmarks/vendor-isolation-validation.json).
+The app prepares a vendor-specific directory containing links to that vendor’s
+packaged compiler and dispatch libraries, plus QNN support libraries on Qualcomm.
+Both LiteRT plugin directory options point to this directory. Compiler loading
+uses the original extracted library path, and links are repaired after an APK
+update. Validate NPU buffers and native delegation for each APK and device.
 
 ## Audit on an explicitly selected device
 

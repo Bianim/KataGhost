@@ -29,16 +29,16 @@ test('synchronizes once, detects stale metadata and rejects a mismatched tag', (
     put('package.json', JSON.stringify({ version: '0.2.0', versionCode: 1002 }));
     put('package-lock.json', JSON.stringify({ version: '0.1.0', packages: { '': { version: '0.1.0' } } }));
     put('CHANGELOG.md', '## 0.2.0\n\n新增功能\n');
-    for (const name of ['README.md', 'README.zh-CN.md', 'CONTRIBUTING.md']) {
+    for (const name of ['README.md', 'README.en.md', 'CONTRIBUTING.md']) {
       put(name, '<!-- current-version:start -->\nold\n<!-- current-version:end -->\nHistorical v1.0.0\n');
     }
     assert.throws(() => synchronize(root, 'check'));
     synchronize(root, 'sync');
     assert.equal(JSON.parse(get('package.json')).versionCode, 1002);
     assert.equal(existsSync(join(root, 'version.properties')), false);
-    assert.match(get('README.zh-CN.md'), /Historical v1.0.0/);
+    assert.match(get('README.en.md'), /Historical v1.0.0/);
     assert.equal(existsSync(join(root, 'RELEASE_NOTES.md')), false);
-    assert.match(get('README.zh-CN.md'), /\[Changelog\]\(CHANGELOG.md\)/);
+    assert.match(get('README.en.md'), /\[Changelog\]\(CHANGELOG.md\)/);
     synchronize(root, 'sync');
     synchronize(root, 'check', 'v0.2.0');
     put('README.md', get('README.md').replace(/\n/g, '\r\n'));

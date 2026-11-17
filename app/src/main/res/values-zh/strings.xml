@@ -10,7 +10,7 @@
     <string name="auto_white">白棋自动落子</string>
     <string name="katago_black">由 KataGo 执黑</string>
     <string name="katago_white">由 KataGo 执白</string>
-    <string name="automatic_hint">自动落子遵循顶部 KataGo 开关。回看棋谱时暂停，可从菜单继续；双方都开启时自动对弈。</string>
+    <string name="automatic_hint">自动落子遵循顶部 KataGo 开关。回看棋谱时暂停，可在棋盘上继续；双方都开启时自动对弈。</string>
     <string name="rules_komi">规则与贴目</string>
     <string name="komi_label">贴目，可输入正数、负数或小数</string>
     <string name="points">目</string>
