@@ -231,8 +231,8 @@ private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: Engi
     androidx.compose.runtime.LaunchedEffect(placement, position, territory, before != null && after != null) {
         if (!territory && placement != null && position == placement?.position && before != null && after != null && (delta == null || animation.value > 0f)) {
             val sign = if (state.node.color == 1) 1 else -1
-            val saturated = before.blackWinRate >= 99.95f || before.blackWinRate <= 0.05f ||
-                after.blackWinRate >= 99.95f || after.blackWinRate <= 0.05f
+            val saturated = before.blackWinRate >= 95f || before.blackWinRate <= 5f ||
+                after.blackWinRate >= 95f || after.blackWinRate <= 5f
             delta = if (settings.scoreChangeOnly || saturated) {
                 val scale = if (position.rules == io.github.bianim.kataghost.engine.GoRules.CHINESE) 2 else 1
                 val change = sign * (after.blackLead - before.blackLead) / scale
