@@ -1,7 +1,7 @@
 # KataGhost
 
 <!-- current-version:start -->
-KataGhost: **v0.1.1** · Android versionCode: **1002** · [Changelog](CHANGELOG.md)
+KataGhost: **v0.2.0** · Android versionCode: **1003** · [Changelog](CHANGELOG.md)
 <!-- current-version:end -->
 
 KataGhost 是 Bianim 维护的 Android 围棋应用，提供 KataGo 分析、人机对弈和 SGF 复盘。其他围棋应用导出的 SGF 棋谱可直接导入。
