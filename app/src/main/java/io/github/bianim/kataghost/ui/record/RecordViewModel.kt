@@ -33,6 +33,12 @@ class RecordViewModel(application: Application) : AndroidViewModel(application) 
         private set
     val record = runCatching { RecordUiState.restore(file.openRead().bufferedReader().use { it.readText() }) }
         .getOrElse { RecordUiState(preferences.rules, preferences.komi).apply { pauseAutomatic() } }
+        .apply {
+            if (io.github.bianim.kataghost.engine.BoardSnapshot.from(position).finished) {
+                newGame(komi = preferences.komi)
+                pauseAutomatic()
+            }
+        }
     var busy by mutableStateOf(false)
         private set
     var message by mutableStateOf<String?>(null)
