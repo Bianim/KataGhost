@@ -82,6 +82,7 @@ fun GoBoard(
     val bestWinRate = evaluatedCandidates.maxOfOrNull { it.winRateFor(position.nextPlayer) } ?: 0f
     val candidates = evaluatedCandidates.filter { it.move in 0..360 }
     val haptics = LocalHapticFeedback.current
+    val selectMove by rememberUpdatedState(onSelectMove)
     val currentCandidates by rememberUpdatedState(candidates)
     var touchPoint by remember(position) { mutableStateOf<Int?>(null) }
     val paint = remember { Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER; typeface = Typeface.create("sans-serif", Typeface.NORMAL) } }
@@ -120,7 +121,7 @@ fun GoBoard(
                     change.consume()
                     current = change
                     released = !change.pressed
-                    if (released && !longPressed && manualInput && preview == null) pointAt(change.position)?.let(onSelectMove)
+                    if (released && !longPressed && manualInput && preview == null) pointAt(change.position)?.let(selectMove)
                 }
             } finally { touchPoint = null }
         }
