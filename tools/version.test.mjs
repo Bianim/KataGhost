@@ -16,7 +16,7 @@ test('advances Android versionCode only when Changesets changes the version', ()
 });
 
 test('extracts only the requested release and preserves Unicode', () => {
-  assert.equal(releaseNotes('## 0.2.0\n\n中文\n\n## 0.1.0\nold', '0.2.0'), '# KataGhost 0.2.0\n\n中文\n');
+  assert.equal(releaseNotes('## 0.2.0\n\n### Patch Changes\n\n- 中文\n\n## 0.1.0\nold', '0.2.0'), '### Patch Changes\n\n- 中文\n');
   assert.throws(() => releaseNotes('## 0.1.0\n', '0.2.0'));
   assert.throws(() => releaseNotes('## 0.1.0\n', '0.1.0'));
 });

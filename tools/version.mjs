@@ -21,7 +21,7 @@ export function releaseNotes(changelog, version) {
   const next = lines.findIndex((line, i) => i > start && line.startsWith('## '));
   const notes = lines.slice(start + 1, next < 0 ? undefined : next).join('\n').trim();
   if (!notes) throw new Error('Release notes must not be empty');
-  return `# KataGhost ${version}\n\n${notes}\n`;
+  return `${notes}\n`;
 }
 
 export function synchronize(root, mode, tag) {
