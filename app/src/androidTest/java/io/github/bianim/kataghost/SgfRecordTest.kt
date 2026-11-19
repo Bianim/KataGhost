@@ -20,19 +20,28 @@ class SgfRecordTest {
             assertTrue(play(PASS))
         }
         val reopened = RecordUiState.restore(game.serialize())
-        reopened.clearFinishedGame(7.5f)
+        reopened.prepareForStartup(7.5f, automatic = false)
         val reopenedAgain = RecordUiState.restore(reopened.serialize())
-        reopenedAgain.clearFinishedGame(7.5f)
+        reopenedAgain.prepareForStartup(7.5f, automatic = false)
         assertEquals(game.position, reopenedAgain.position)
         assertFalse(reopenedAgain.isDemo)
 
         assertTrue(reopenedAgain.play(PASS))
         reopenedAgain.previous()
         val finished = RecordUiState.restore(reopenedAgain.serialize())
-        finished.clearFinishedGame(7.5f)
+        finished.prepareForStartup(7.5f, automatic = false)
         assertTrue(finished.position.moves.isEmpty())
         assertFalse(finished.isDemo)
         assertFalse(finished.autoPlayArmed)
+
+        val automatic = RecordUiState.restore(reopenedAgain.serialize())
+        automatic.prepareForStartup(7.5f, automatic = true)
+        assertTrue(automatic.position.moves.isEmpty())
+        assertTrue(automatic.autoPlayArmed)
+        val resumed = RecordUiState.restore(game.serialize())
+        resumed.prepareForStartup(7.5f, automatic = true)
+        assertEquals(game.position, resumed.position)
+        assertTrue(resumed.autoPlayArmed)
     }
 
     @Test

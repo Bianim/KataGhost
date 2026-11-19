@@ -185,11 +185,13 @@ class RecordUiState(initialRules: GoRules = GoRules.CHINESE, initialKomi: Float 
         recordNodes.clear(); recordNodes += RecordNode("game-0", null, 0, null, 0, "main", properties = properties)
         selectedId = "game-0"; routeLeafId = "game-0"; autoPlayArmed = true
     }
-    internal fun clearFinishedGame(komi: Float) {
+    internal fun prepareForStartup(komi: Float, automatic: Boolean) {
         val endPosition = if (recordNodes.first().id == "game-0") positionFor(routeLeafId) else position
         if (BoardSnapshot.from(endPosition).finished) {
             newGame(komi = komi)
-            pauseAutomatic()
+            if (!automatic) pauseAutomatic()
+        } else if (automatic && recordNodes.first().id == "game-0" && atEnd) {
+            resumeAutomatic()
         }
     }
 

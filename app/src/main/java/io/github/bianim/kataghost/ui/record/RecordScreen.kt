@@ -102,10 +102,11 @@ internal fun RecordScreen(
     val position = state.position
     val board = remember(position) { BoardSnapshot.from(position) }
     var pendingMove by remember(state.selectedId, position, state.preview, manualInput) { mutableStateOf<Int?>(null) }
-    var noLiberties by remember(position) { mutableStateOf(0) }
+    var illegalMoveNotice by remember(position) { mutableStateOf(R.string.illegal_move) }
+    var noticeAttempt by remember(position) { mutableStateOf(0) }
     val notice = remember(position) { androidx.compose.animation.core.Animatable(0f) }
-    androidx.compose.runtime.LaunchedEffect(noLiberties, position) {
-        if (noLiberties > 0) {
+    androidx.compose.runtime.LaunchedEffect(noticeAttempt, position) {
+        if (noticeAttempt > 0) {
             notice.snapTo(1f)
             kotlinx.coroutines.delay(500)
             notice.animateTo(0f, androidx.compose.animation.core.tween(600))
@@ -113,7 +114,15 @@ internal fun RecordScreen(
     }
     val selectMove: (Int) -> Unit = { point ->
         if (board.isLegal(point)) pendingMove = point
-        else if (!board.finished && board.hasNoLibertiesAt(point, position.nextPlayer)) noLiberties++
+        else {
+            illegalMoveNotice = when {
+                board.finished -> R.string.game_finished
+                board.color(point) != 0 -> R.string.occupied_point
+                board.hasNoLibertiesAt(point, position.nextPlayer) -> R.string.no_liberties
+                else -> R.string.ko_banned
+            }
+            noticeAttempt++
+        }
     }
     val confirmMove: @Composable () -> Unit = {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -161,7 +170,7 @@ internal fun RecordScreen(
                 val rightMinimum = if (maxWidth < 680.dp) 280.dp else 320.dp
                 val boardSize = minOf(maxHeight, maxWidth - rightMinimum - 12.dp).coerceAtLeast(120.dp)
                 Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory, selectMove, onDeltaFinished, notice.value)
+                    RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory, selectMove, onDeltaFinished, illegalMoveNotice, notice.value)
                     Column(Modifier.weight(1f).fillMaxSize()) {
                         TerritoryLocked(territory) { header(true) }
                         TerritoryLocked(territory, title = true) { Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth()) }
@@ -181,7 +190,7 @@ internal fun RecordScreen(
                     TerritoryLocked(territory, title = true) { Players(state, board, settings, onResumeAutomatic, Modifier.fillMaxWidth()) }
                     BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                         val boardSize = minOf(maxWidth, (maxHeight).coerceAtLeast(0.dp))
-                        RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory, selectMove, onDeltaFinished, notice.value)
+                        RecordBoard(state, board, engine, settings, manualInput, Modifier.size(boardSize), pendingMove, territory, selectMove, onDeltaFinished, illegalMoveNotice, notice.value)
                     }
                     confirmMove()
                     Column(Modifier.fillMaxWidth().height(76.dp), verticalArrangement = Arrangement.Center) {
@@ -200,7 +209,7 @@ internal fun RecordScreen(
 }
 
 @Composable
-private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: EngineUiState, settings: AppPreferences, manualInput: Boolean, modifier: Modifier, pendingMove: Int?, territory: Boolean, onSelectMove: (Int) -> Unit, onDeltaFinished: (RecordUiState.Placement) -> Unit, noticeAlpha: Float) {
+private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: EngineUiState, settings: AppPreferences, manualInput: Boolean, modifier: Modifier, pendingMove: Int?, territory: Boolean, onSelectMove: (Int) -> Unit, onDeltaFinished: (RecordUiState.Placement) -> Unit, noticeText: Int, noticeAlpha: Float) {
     val placement = state.lastPlacement
     val position = state.position
     val before = state.node.parentId?.let { engine.analysisFor(state.positionFor(it)) }
@@ -239,7 +248,7 @@ private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: Engi
         delta.takeIf { placement?.automaticPass != true && !territory && state.preview == null && position == placement?.position }, animation.value)
         if (!territory && noticeAlpha > 0f) {
             Text(
-                LocalResources.current.getString(R.string.no_liberties),
+                LocalResources.current.getString(noticeText),
                 color = GoColors.Surface,
                 modifier = Modifier.align(Alignment.Center)
                     .offset(y = (-28 * (1f - noticeAlpha)).dp).alpha(noticeAlpha)

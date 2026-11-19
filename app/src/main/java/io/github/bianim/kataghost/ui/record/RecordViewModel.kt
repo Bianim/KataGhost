@@ -153,7 +153,7 @@ class RecordViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     init {
-        record.clearFinishedGame(preferences.komi)
+        record.prepareForStartup(preferences.komi, preferences.hasAutomaticPlayer)
         viewModelScope.launch(Dispatchers.IO) {
             // Save periodically even when fast self-play never becomes idle.
             snapshotFlow { record.serialize() }.conflate().collect {

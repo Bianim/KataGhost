@@ -249,6 +249,8 @@
     <string name="territory_back">Back</string>
     <string name="territory_estimate">Estimated territory</string>
     <string name="quick_candidates">Candidates</string>
+    <string name="occupied_point">Point is occupied</string>
+    <string name="ko_banned">Move prohibited by ko</string>
     <string name="no_liberties">No liberties</string>
     <string name="white_win_rate">White win rate</string>
     <string name="territory_lead">%1$s leads by %2$.2f points</string>
