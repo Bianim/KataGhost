@@ -114,10 +114,9 @@ internal fun RecordScreen(
     }
     val selectMove: (Int) -> Unit = { point ->
         if (board.isLegal(point)) pendingMove = point
-        else {
+        else if (board.color(point) == 0) {
             illegalMoveNotice = when {
                 board.finished -> R.string.game_finished
-                board.color(point) != 0 -> R.string.occupied_point
                 board.hasNoLibertiesAt(point, position.nextPlayer) -> R.string.no_liberties
                 else -> R.string.ko_banned
             }
