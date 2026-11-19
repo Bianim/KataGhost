@@ -33,6 +33,7 @@ data class EngineUiState(
     val territoryEstimatedBlackLead: Double? = null,
     val ownership: List<Float>? = null,
     val opponentResult: Pair<OpponentSearch, PositionAnalysis>? = null,
+    val opponentMove: Int? = null,
     val liveAnalysis: PositionAnalysis? = null,
     val config: EngineConfig = EngineConfig(),
     val historyCompleted: Int = 0,
@@ -165,8 +166,15 @@ class AnalysisController(
                         }
                         val opponent = request.opponent
                         if (opponent != null) {
+                            activeSession.resetForBenchmark(request.position)
+                            val result = activeSession.analyzeOpponent(opponent.visits, command.cancelled, opponent.lastRank)
+                            if (command.cancelled.get()) continue
+                            checkNotNull(result)
+                            check(result.position == request.position)
+                            val move = if (result.gameFinished) null
+                                else opponent.selectMove(result, BoardSnapshot.from(request.position)::isLegal)
                             val before = request.deltaBefore
-                            if (before != null) {
+                            if (before != null && move != null && move != PASS) {
                                 for (position in listOf(before, request.position)) {
                                     if (state.value.analysisFor(position) != null) continue
                                     activeSession.setPosition(position)
@@ -175,12 +183,7 @@ class AnalysisController(
                                 }
                                 if (command.cancelled.get()) continue
                             }
-                            activeSession.resetForBenchmark(request.position)
-                            val result = activeSession.analyzeOpponent(opponent.visits, command.cancelled, opponent.lastRank)
-                            if (command.cancelled.get()) continue
-                            checkNotNull(result)
-                            check(result.position == request.position)
-                            publish(command) { it.copy(phase = EnginePhase.READY, opponentResult = opponent to result) }
+                            publish(command) { it.copy(phase = EnginePhase.READY, opponentResult = opponent to result, opponentMove = move) }
                             continue
                         }
                         val timed = activeSession.supportsTimedAnalysis
@@ -312,6 +315,7 @@ class AnalysisController(
                 territoryBlackScore = null,
                 territoryEstimatedBlackLead = null,
                 opponentResult = null,
+                opponentMove = null,
                 liveAnalysis = null,
                 config = request.config,
                 historyCompleted = 0,

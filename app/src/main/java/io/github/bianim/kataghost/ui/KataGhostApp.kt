@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.bianim.kataghost.DiagnosticsScreen
 import io.github.bianim.kataghost.engine.BoardSnapshot
+import io.github.bianim.kataghost.engine.PASS
 import io.github.bianim.kataghost.engine.EnginePhase
 import io.github.bianim.kataghost.engine.KataGoViewModel
 import io.github.bianim.kataghost.ui.record.RecordScreen
@@ -83,7 +84,7 @@ fun KataGhostApp() {
     }
     val opponent = settings.effectiveOpponentSearch.takeIf { autoTurn }
     val placement = record.lastPlacement
-    val deltaBefore = record.node.parentId?.takeIf { placement != null && position == placement.position && record.preview == null }
+    val deltaBefore = record.node.parentId?.takeIf { placement != null && !placement.automaticPass && position == placement.position && record.preview == null }
         ?.let(record::positionFor)
     val before = deltaBefore?.let { engineState.analysisFor(it) }
     val after = engineState.analysisFor(position)
@@ -122,18 +123,18 @@ fun KataGhostApp() {
 
     LaunchedEffect(position, history, settings.engineEnabled, settings.maxVisits, settings.engineConfig, visible, page, foreground, opponent, territory, settling, waitForDelta, waitForPass, deltaBefore) {
         engine.controller.setTarget(position, settings.engineEnabled || territory || settling, visible, maxVisits = settings.maxVisits, config = settings.engineConfig,
-            history = history, continuous = !autoTurn, opponent = opponent.takeUnless { waitForPass }, territory = territory || settling, deltaBefore = deltaBefore.takeIf { waitForDelta || waitForPass })
+            history = history, continuous = !autoTurn, opponent = opponent.takeUnless { waitForPass }, territory = territory || settling, deltaBefore = deltaBefore.takeIf { waitForDelta })
     }
     LaunchedEffect(autoTurn, visible, settings.engineEnabled, settings.maxVisits, settings.engineConfig, position, engineState.phase, engineState.opponentResult, opponent, waitForDelta, waitForPass, deltaFinished, before != null && after != null) {
         val result = engineState.opponentResult?.takeIf { it.first == opponent }?.second
-        if (!waitForPass && (!waitForDelta || deltaFinished === placement || before == null || after == null) && autoTurn && visible && settings.engineEnabled && engineState.phase == EnginePhase.READY &&
+        val move = engineState.opponentMove
+        if (!waitForPass && (move == PASS || !waitForDelta || deltaFinished === placement || before == null || after == null) && autoTurn && visible && settings.engineEnabled && engineState.phase == EnginePhase.READY &&
             engineState.config == settings.engineConfig && engineState.maxVisits == settings.maxVisits && result?.position == position && !result.gameFinished) {
             // Give navigation, stop and a newly selected position time to cancel this turn.
             delay(180)
             if (!territory && record.position == position && record.autoPlayArmed && latestSettings.engineEnabled && latestSettings.engineConfig == engineState.config &&
                 latestSettings.automatic(position.nextPlayer) && record.preview == null &&
                 latestSettings.effectiveOpponentSearch == opponent && engine.controller.state.value.opponentResult === engineState.opponentResult) {
-                val move = opponent?.selectMove(result, BoardSnapshot.from(position)::isLegal)
                 if (move == null || !record.play(move, automatic = true)) record.automaticFailed(R.string.auto_move_failed)
             }
         }
@@ -159,6 +160,7 @@ fun KataGhostApp() {
             if (event == Lifecycle.Event.ON_START) foreground = true
             if (event == Lifecycle.Event.ON_STOP) {
                 foreground = false
+                document.saveRecord()
                 engine.controller.setTarget(record.position, latestSettings.engineEnabled, visible = false, maxVisits = latestSettings.maxVisits, config = latestSettings.engineConfig)
             }
         }

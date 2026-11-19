@@ -73,7 +73,6 @@ import io.github.bianim.kataghost.ui.AppPreferences
 import androidx.compose.ui.text.style.TextOverflow
 import io.github.bianim.kataghost.ui.theme.GoColors
 import io.github.bianim.kataghost.engine.analysisFor
-import kotlinx.coroutines.flow.first
 import io.github.bianim.kataghost.engine.BoardSnapshot
 import io.github.bianim.kataghost.engine.EnginePhase
 import io.github.bianim.kataghost.engine.EngineUiState
@@ -230,7 +229,7 @@ private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: Engi
     val locale = LocalResources.current.configuration.locales[0]
     val animation = remember(state, placement) { androidx.compose.animation.core.Animatable(0f) }
     androidx.compose.runtime.LaunchedEffect(placement, position, territory, before != null && after != null) {
-        if (!territory && placement != null && position == placement?.position && before != null && after != null && (delta == null || animation.value > 0f)) {
+        if (!territory && placement != null && !placement.automaticPass && position == placement.position && before != null && after != null && (delta == null || animation.value > 0f)) {
             val sign = if (state.node.color == 1) 1 else -1
             val saturated = before.blackWinRate >= 95f || before.blackWinRate <= 5f ||
                 after.blackWinRate >= 95f || after.blackWinRate <= 5f
@@ -242,19 +241,14 @@ private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: Engi
             } else {
                 String.format(locale, "%+.1f%%", sign * (after.blackWinRate - before.blackWinRate))
             }
-            if (placement.automaticPass) return@LaunchedEffect
             animation.snapTo(1f)
             animation.animateTo(0f, androidx.compose.animation.core.tween(1300))
             onDeltaFinished(placement)
         }
     }
-    var passDelta by remember(state, placement) { mutableStateOf<String?>(null) }
     val passAnimation = remember(state, placement) { androidx.compose.animation.core.Animatable(0f) }
     androidx.compose.runtime.LaunchedEffect(placement, position) {
         if (placement?.automaticPass == true && position == placement.position) {
-            passDelta = kotlinx.coroutines.withTimeoutOrNull(3000L) {
-                androidx.compose.runtime.snapshotFlow { delta }.first { it != null }
-            }
             passAnimation.snapTo(1f)
             passAnimation.animateTo(0f, androidx.compose.animation.core.tween(1600))
             onDeltaFinished(placement)
@@ -274,7 +268,6 @@ private fun RecordBoard(state: RecordUiState, board: BoardSnapshot, engine: Engi
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 val color = if (black) Color.White else Color.Black
-                passDelta?.let { Text(it, color = color) }
                 Text(LocalResources.current.getString(if (black) R.string.black_pass_notice else R.string.white_pass_notice),
                     color = color, fontSize = 20.sp)
             }

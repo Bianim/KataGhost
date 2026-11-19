@@ -13,6 +13,29 @@ import org.junit.Test
 
 class SgfRecordTest {
     @Test
+    fun unfinishedLocalGameSurvivesRepeatedReopensAndFinishedGameClears() {
+        val game = RecordUiState().apply {
+            newGame()
+            assertTrue(play(sgfPoint("dd")))
+            assertTrue(play(PASS))
+        }
+        val reopened = RecordUiState.restore(game.serialize())
+        reopened.clearFinishedGame(7.5f)
+        val reopenedAgain = RecordUiState.restore(reopened.serialize())
+        reopenedAgain.clearFinishedGame(7.5f)
+        assertEquals(game.position, reopenedAgain.position)
+        assertFalse(reopenedAgain.isDemo)
+
+        assertTrue(reopenedAgain.play(PASS))
+        reopenedAgain.previous()
+        val finished = RecordUiState.restore(reopenedAgain.serialize())
+        finished.clearFinishedGame(7.5f)
+        assertTrue(finished.position.moves.isEmpty())
+        assertFalse(finished.isDemo)
+        assertFalse(finished.autoPlayArmed)
+    }
+
+    @Test
     fun importedSetupAndBranchesSurviveEditingExportAndDiskRestore() {
         val source = "(;FF[4]SZ[19]RU[Korean]KM[-2.25]HA[2]AB[dd][pp]PL[W]PB[甲]PW[乙]GN[让子棋]C[根注释];W[jj];C[中途注释];B[dq](;W[qd]C[主线])(;W[]C[变化]))"
         val game = SgfGame.from(SgfCodec.parse(source).single(), GoRules.CHINESE, 7.5f)

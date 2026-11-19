@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.bianim.kataghost.ui.AppPreferences
@@ -31,14 +32,15 @@ class RecordViewModel(application: Application) : AndroidViewModel(application) 
     private val file = AtomicFile(File(application.filesDir, "current-record.json"))
     var preferences by mutableStateOf(AppPreferences.load(application))
         private set
-    val record = runCatching { RecordUiState.restore(file.openRead().bufferedReader().use { it.readText() }) }
-        .getOrElse { RecordUiState(preferences.rules, preferences.komi).apply { pauseAutomatic() } }
-        .apply {
-            if (io.github.bianim.kataghost.engine.BoardSnapshot.from(position).finished) {
-                newGame(komi = preferences.komi)
-                pauseAutomatic()
-            }
-        }
+    val record = synchronized(recordFileLock) {
+        runCatching { file.openRead().bufferedReader().use { it.readText() } }.getOrNull()
+    }?.let { saved ->
+        runCatching { RecordUiState.restore(saved) }.onFailure {
+            Log.w("KataGhostRecord", "Unable to restore current record", it)
+        }.getOrNull()
+    } ?: RecordUiState(preferences.rules, preferences.komi).apply { pauseAutomatic() }
+    private var lastSaved = record.serialize()
+
     var busy by mutableStateOf(false)
         private set
     var message by mutableStateOf<String?>(null)
@@ -133,21 +135,35 @@ class RecordViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    internal fun saveRecord() = synchronized(recordFileLock) {
+        val value = Snapshot.takeSnapshot().let { snapshot ->
+            try { snapshot.enter { record.serialize() } } finally { snapshot.dispose() }
+        }
+        if (value == lastSaved) return@synchronized
+        var stream: java.io.FileOutputStream? = null
+        try {
+            stream = file.startWrite()
+            stream.write(value.toByteArray(Charsets.UTF_8))
+            file.finishWrite(stream)
+            lastSaved = value
+        } catch (error: Exception) {
+            file.failWrite(stream)
+            Log.w("KataGhostRecord", "Unable to save current record", error)
+        }
+    }
+
     init {
+        record.clearFinishedGame(preferences.komi)
         viewModelScope.launch(Dispatchers.IO) {
             // Save periodically even when fast self-play never becomes idle.
-            snapshotFlow { record.serialize() }.conflate().collect { value ->
-                var stream: java.io.FileOutputStream? = null
-                try {
-                    stream = file.startWrite()
-                    stream.write(value.toByteArray(Charsets.UTF_8))
-                    file.finishWrite(stream)
-                } catch (error: Exception) {
-                    file.failWrite(stream)
-                    Log.w("KataGhostRecord", "Unable to save current record", error)
-                }
+            snapshotFlow { record.serialize() }.conflate().collect {
+                saveRecord()
                 delay(250)
             }
         }
+    }
+
+    private companion object {
+        val recordFileLock = Any()
     }
 }
