@@ -1,5 +1,11 @@
 # kataghost
 
+## 0.2.2
+
+### Patch Changes
+
+- c78b009: 静默忽略对已有棋子的点击
+
 ## 0.2.1
 
 ### Patch Changes

@@ -1,7 +1,7 @@
 # KataGhost
 
 <!-- current-version:start -->
-KataGhost: **v0.2.1** · Android versionCode: **1004** · [Changelog](CHANGELOG.md)
+KataGhost: **v0.2.2** · Android versionCode: **1005** · [Changelog](CHANGELOG.md)
 <!-- current-version:end -->
 
 KataGhost is an Android Go board with KataGo analysis, AI opponents and SGF review. It is maintained by Bianim. SGF files exported from other Go apps can be imported.
