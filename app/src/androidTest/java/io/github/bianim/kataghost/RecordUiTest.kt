@@ -38,11 +38,13 @@ class RecordUiTest {
     private fun boardState() = ui.onNodeWithTag("go-board").fetchSemanticsNode().config[SemanticsProperties.StateDescription]
     private fun text(tag: String) = ui.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode().config[SemanticsProperties.Text].single().text
     private fun setEngine(enabled: Boolean) {
-        val on = ui.onNodeWithTag("engine-switch").fetchSemanticsNode().config[SemanticsProperties.ToggleableState] == ToggleableState.On
-        if (on != enabled) ui.onNodeWithTag("engine-switch").performClick()
+        ui.runOnIdle {
+            val document = ViewModelProvider(ui.activity)[RecordViewModel::class.java]
+            document.updatePreferences(document.preferences.copy(engineEnabled = enabled))
+        }
     }
     private fun awaitAnalysis() {
-        ui.waitUntil(30000) { text("engine-status") == "已开启" && Regex("^(\\d+) visits").find(text("analysis-visits"))?.groupValues?.get(1)?.toInt()?.let { it >= 500 } == true }
+        ui.waitUntil(30000) { Regex("^(\\d+) visits").find(text("analysis-visits"))?.groupValues?.get(1)?.toInt()?.let { it >= 500 } == true }
     }
     private fun openSettings() {
         ui.onNodeWithContentDescription("更多选项").performClick()
@@ -85,7 +87,7 @@ class RecordUiTest {
         ui.onNodeWithContentDescription("下一手").performClick()
         ui.activityRule.scenario.recreate()
         assertEquals(preview, boardState())
-        ui.onNodeWithTag("engine-status", useUnmergedTree = true).assertTextEquals("已暂停")
+        ui.onNodeWithTag("automatic-play-status", useUnmergedTree = true).assertTextEquals("已暂停")
         ui.onNodeWithTag("exit-preview").performClick()
         assertEquals(original, boardState())
         assertEquals(originalRate, text("win-rate-value"))
@@ -114,7 +116,7 @@ class RecordUiTest {
         assertEquals(rate, text("win-rate-value"))
         ui.activityRule.scenario.recreate()
         assertEquals(rate, text("win-rate-value"))
-        ui.onNodeWithTag("engine-status", useUnmergedTree = true).assertTextEquals("已暂停")
+        ui.onNodeWithTag("automatic-play-status", useUnmergedTree = true).assertTextEquals("已暂停")
         setEngine(true)
         assertEquals(rate, text("win-rate-value")) // Cached result stays visible during startup/update.
         awaitAnalysis()
@@ -135,7 +137,7 @@ class RecordUiTest {
         assertEquals(captured, boardState())
         ui.activityRule.scenario.recreate()
         assertEquals(captured, boardState())
-        ui.onNodeWithTag("engine-status", useUnmergedTree = true).assertTextEquals("已暂停")
+        ui.onNodeWithTag("automatic-play-status", useUnmergedTree = true).assertTextEquals("已暂停")
         ui.onNodeWithContentDescription("上一手").performClick()
         assertTrue(boardState().contains("黑 3 子，白 3 子"))
         ui.onNodeWithContentDescription("下一手").performClick()

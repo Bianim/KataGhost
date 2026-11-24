@@ -10,7 +10,7 @@
     <string name="auto_white">白棋自动落子</string>
     <string name="katago_black">由 KataGo 执黑</string>
     <string name="katago_white">由 KataGo 执白</string>
-    <string name="automatic_hint">自动落子遵循顶部 KataGo 开关。回看棋谱时暂停，可在棋盘上继续；双方都开启时自动对弈。</string>
+    <string name="automatic_hint">主界面快捷开关可同时开启或关闭黑白双方的自动落子。回看棋谱时会暂停，可在棋盘上继续。</string>
     <string name="rules_komi">规则与贴目</string>
     <string name="komi_label">贴目，可输入正数、负数或小数</string>
     <string name="points">目</string>
@@ -77,7 +77,7 @@
     <string name="status_error">启动失败</string>
     <string name="status_suspended">计算暂停</string>
     <string name="status_on">已开启</string>
-    <string name="engine_switch">KataGo 引擎</string>
+    <string name="automatic_play_switch">自动落子</string>
     <string name="game_over">棋局结束</string>
     <string name="auto_paused">自动已暂停</string>
     <string name="first_move">回到开局</string>

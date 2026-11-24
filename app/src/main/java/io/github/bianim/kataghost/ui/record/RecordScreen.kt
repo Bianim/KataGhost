@@ -74,7 +74,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import io.github.bianim.kataghost.ui.theme.GoColors
 import io.github.bianim.kataghost.engine.analysisFor
 import io.github.bianim.kataghost.engine.BoardSnapshot
-import io.github.bianim.kataghost.engine.EnginePhase
 import io.github.bianim.kataghost.engine.EngineUiState
 import io.github.bianim.kataghost.engine.PASS
 
@@ -85,7 +84,7 @@ internal fun RecordScreen(
     settings: AppPreferences,
     engine: EngineUiState,
     manualInput: Boolean,
-    onEngineEnabled: (Boolean) -> Unit,
+    onAutomaticPlayChanged: (Boolean) -> Unit,
     onRetry: () -> Unit,
     onSettings: () -> Unit,
     onImport: () -> Unit,
@@ -158,7 +157,7 @@ internal fun RecordScreen(
         }
     }
     val header: @Composable (Boolean) -> Unit = { compact ->
-        RecordHeader(state, settings, engine, onEngineEnabled, onSettings, compact,
+        RecordHeader(state, settings, onAutomaticPlayChanged, onSettings, compact,
             onImport = onImport, onExport = onExport, onNewGame = onNewGame)
     }
     BoxWithConstraints(modifier.fillMaxSize().background(GoColors.Background)) {
@@ -280,7 +279,7 @@ private fun CurrentAnalysis(state: RecordUiState, viewport: TreeViewportState, e
 }
 
 @Composable
-private fun RecordHeader(state: RecordUiState, settings: AppPreferences, engine: EngineUiState, onEnabled: (Boolean) -> Unit,
+private fun RecordHeader(state: RecordUiState, settings: AppPreferences, onEnabled: (Boolean) -> Unit,
     onSettings: () -> Unit, compact: Boolean,
     onImport: () -> Unit, onExport: () -> Unit, onNewGame: () -> Unit) {
     val resources = LocalResources.current
@@ -293,7 +292,7 @@ private fun RecordHeader(state: RecordUiState, settings: AppPreferences, engine:
                 withStyle(SpanStyle(color = GoColors.Primary)) { append(resources.getString(R.string.app_name).removePrefix("Kata")) }
             }, fontSize = if (compact) 18.sp else 21.sp, letterSpacing = (-.6).sp,
                 fontWeight = FontWeight.SemiBold, color = GoColors.Ink, modifier = Modifier.weight(1f))
-            EngineSwitch(settings.engineEnabled, engine.phase, onEnabled)
+            AutomaticPlaySwitch(settings.autoBlack && settings.autoWhite, onEnabled)
             Spacer(Modifier.width(4.dp))
             Box {
                 IconButton(onClick = { menu = true }, modifier = Modifier.size(48.dp).semantics { contentDescription = resources.getString(R.string.more_options) }) { GoIcon(GoSymbol.More) }
@@ -317,25 +316,19 @@ private fun RecordHeader(state: RecordUiState, settings: AppPreferences, engine:
 }
 
 @Composable
-private fun EngineSwitch(enabled: Boolean, phase: EnginePhase, onEnabled: (Boolean) -> Unit) {
+private fun AutomaticPlaySwitch(enabled: Boolean, onEnabled: (Boolean) -> Unit) {
     val resources = LocalResources.current
-    val status = if (!enabled) resources.getString(R.string.status_off) else when (phase) {
-        EnginePhase.STARTING -> resources.getString(R.string.status_starting)
-        EnginePhase.ANALYZING -> resources.getString(R.string.status_analyzing)
-        EnginePhase.ERROR -> resources.getString(R.string.status_error)
-        EnginePhase.SUSPENDED -> resources.getString(R.string.status_suspended)
-        else -> resources.getString(R.string.status_on)
-    }
+    val status = resources.getString(if (enabled) R.string.status_on else R.string.status_off)
     val color = if (enabled) GoColors.Primary else GoColors.Muted
     Row(Modifier.height(48.dp).clip(RoundedCornerShape(16.dp))
         .background(if (enabled) Color(0xFFE3EDD9) else Color(0xFFE9ECE3))
-        .testTag("engine-switch").semantics { contentDescription = resources.getString(R.string.engine_switch); stateDescription = status }
+        .testTag("automatic-play-switch").semantics { contentDescription = resources.getString(R.string.automatic_play_switch); stateDescription = status }
         .toggleable(enabled, role = Role.Switch, onValueChange = onEnabled)
         .padding(horizontal = 9.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
         Column {
-            Text("KataGo", fontSize = 11.sp, lineHeight = 15.sp, fontWeight = FontWeight.SemiBold, color = color)
-            Text(status, fontSize = 9.sp, lineHeight = 13.sp, color = color, modifier = Modifier.testTag("engine-status"))
+            Text(resources.getString(R.string.automatic_play_switch), fontSize = 11.sp, lineHeight = 15.sp, fontWeight = FontWeight.SemiBold, color = color)
+            Text(status, fontSize = 9.sp, lineHeight = 13.sp, color = color, modifier = Modifier.testTag("automatic-play-status"))
         }
         Canvas(Modifier.size(31.dp, 20.dp)) {
             val scale = size.height / 20f

@@ -57,8 +57,10 @@ class SettingsFeatureUiTest {
         ui.onNodeWithText("设置").performClick()
     }
     private fun setEngine(enabled: Boolean) {
-        val on = ui.onNodeWithTag("engine-switch").fetchSemanticsNode().config[SemanticsProperties.ToggleableState] == ToggleableState.On
-        if (on != enabled) ui.onNodeWithTag("engine-switch").performClick()
+        ui.runOnIdle {
+            val document = ViewModelProvider(ui.activity)[RecordViewModel::class.java]
+            document.updatePreferences(document.preferences.copy(engineEnabled = enabled))
+        }
     }
     private fun count() = ui.runOnIdle { document.record.basePosition.moves.size }
     private fun waitForMoves(expected: Int) = ui.waitUntil(30000) { document.record.basePosition.moves.size >= expected }
@@ -280,7 +282,7 @@ class SettingsFeatureUiTest {
         val board = ui.onNodeWithTag("go-board").fetchSemanticsNode().boundsInRoot
         assertEquals(board.width, board.height, 1f)
         assertTrue("Landscape board should occupy at least 80% of screen height: $board / $root", board.height > root.height * .8f)
-        assertTrue(ui.onNodeWithTag("engine-switch").fetchSemanticsNode().boundsInRoot.left > board.right)
+        assertTrue(ui.onNodeWithTag("automatic-play-switch").fetchSemanticsNode().boundsInRoot.left > board.right)
         ui.onNodeWithTag("tab-tree").assertIsDisplayed().performClick()
         ui.onNodeWithContentDescription("上一手").assertIsDisplayed().performClick()
         ui.onNodeWithContentDescription("下一手").performClick()

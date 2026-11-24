@@ -69,7 +69,7 @@ class EngineFeatureUiTest {
         assertEquals(measured, BenchmarkStore(java.io.File(ui.activity.filesDir, "engine-benchmarks.json")).load()[config.cacheKey])
         ui.onNodeWithContentDescription("返回").performClick()
         ui.onNodeWithContentDescription("返回").performClick()
-        ui.onNodeWithTag("engine-switch").performClick()
+        ui.runOnIdle { document.updatePreferences(document.preferences.copy(engineEnabled = true)) }
         ui.waitUntil(30000) { engine.controller.state.value.completedAnalysis?.position == document.record.position }
         assertEquals(config, engine.controller.state.value.config)
         assertTrue((engine.controller.state.value.completedAnalysis?.visits ?: 0) >= 64)

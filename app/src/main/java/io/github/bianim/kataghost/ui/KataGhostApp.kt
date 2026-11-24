@@ -195,10 +195,9 @@ fun KataGhostApp() {
                     }
                 },
                 manualInput = !waitForPass && !(autoTurn && settings.engineEnabled) && !document.busy,
-                onEngineEnabled = {
-                    document.updatePreferences(settings.copy(engineEnabled = it))
-                    engine.controller.setTarget(record.position, it, visible, maxVisits = settings.maxVisits, config = settings.engineConfig,
-                        history = history, continuous = !autoTurn, opponent = opponent)
+                onAutomaticPlayChanged = { enabled ->
+                    val current = document.preferences
+                    document.updatePreferences(current.copy(autoBlack = enabled, autoWhite = enabled))
                 },
                 onRetry = { engine.controller.setTarget(record.position, settings.engineEnabled, visible, retry = true, maxVisits = settings.maxVisits,
                     config = settings.engineConfig, history = history, continuous = !autoTurn, opponent = opponent) },

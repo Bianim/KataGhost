@@ -34,7 +34,7 @@ data class AppPreferences(
 
     fun save(context: Context) = context.getSharedPreferences("board_preferences", Context.MODE_PRIVATE).edit {
         putBoolean("coordinates", coordinates); putBoolean("candidates", candidates)
-        putBoolean("engine_enabled", engineEnabled)
+        remove("engine_enabled")
         if (opponentSearch == null) {
             remove("opponent_visits")
         } else {
@@ -56,7 +56,7 @@ data class AppPreferences(
         fun load(context: Context): AppPreferences {
             val p = context.getSharedPreferences("board_preferences", Context.MODE_PRIVATE)
             return AppPreferences(p.getBoolean("coordinates", true), p.getBoolean("candidates", true),
-                p.getBoolean("engine_enabled", true),
+                true,
                 p.getInt("max_visits", 500).coerceIn(1, MAX_VISITS),
                 p.getBoolean("auto_black", false), p.getBoolean("auto_white", false),
                 runCatching { GoRules.fromId(p.getString("rules", "chinese")!!) }.getOrDefault(GoRules.CHINESE),

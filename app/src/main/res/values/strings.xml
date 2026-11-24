@@ -10,7 +10,7 @@
     <string name="auto_white">Play White automatically</string>
     <string name="katago_black">KataGo plays Black</string>
     <string name="katago_white">KataGo plays White</string>
-    <string name="automatic_hint">Automatic moves follow the KataGo switch. Reviewing the game pauses them; resume from the board. Enable both colors for self-play.</string>
+    <string name="automatic_hint">The board shortcut turns on automatic play for both colors or turns it off for both. Reviewing the game pauses automatic moves. Resume from the board.</string>
     <string name="rules_komi">Rules &amp; komi</string>
     <string name="komi_label">Komi (positive, negative or decimal)</string>
     <string name="points">points</string>
@@ -77,7 +77,7 @@
     <string name="status_error">Error</string>
     <string name="status_suspended">Idle</string>
     <string name="status_on">On</string>
-    <string name="engine_switch">KataGo engine</string>
+    <string name="automatic_play_switch">Auto play</string>
     <string name="game_over">Game over</string>
     <string name="auto_paused">Auto paused</string>
     <string name="first_move">Go to the start</string>

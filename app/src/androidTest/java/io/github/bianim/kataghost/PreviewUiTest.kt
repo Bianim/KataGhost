@@ -94,7 +94,7 @@ class PreviewUiTest {
         ui.setContent {
             KataGhostTheme {
                 RecordScreen(record, TreeViewportState(), AppPreferences(candidates = true), engine,
-                    manualInput = true, onEngineEnabled = {}, onRetry = {}, onSettings = {},
+                    manualInput = true, onAutomaticPlayChanged = {}, onRetry = {}, onSettings = {},
                     onImport = {}, onExport = {}, onResumeAutomatic = {}, onNewGame = {})
             }
         }

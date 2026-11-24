@@ -50,7 +50,7 @@ or the universal APK for both architectures. ARMv7 is not supported.
 
 Build and install the app using the instructions below. Open the three-dot menu
 to **Clear board**, **Import SGF**, **Export SGF** or open **Settings**. Tap an
-intersection and confirm to play. The KataGo switch enables analysis; both colors are manual
+intersection and confirm to play. KataGo analyzes automatically. Both colors are manual
 by default. In Settings, edit the desired options and tap **Apply all changes**
 once at the bottom. If automatic play is paused, tap **Resume auto** in the
 player status area to continue. Open **Engines & models** to choose a model and
